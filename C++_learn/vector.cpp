@@ -23,4 +23,11 @@ int main()
         cout << v[flag - i - 1] << " ";
     }
     cout << endl;
+   
+    for (i = 0; i < flag-1; i++) {
+        cout << v[i] + v[i+1] << endl;
+    }
+    for (i = 0; i < flag-1; i++) {
+        cout << v[i] + v[flag-i-1] << endl;
+    }
 }
