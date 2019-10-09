@@ -19,7 +19,7 @@ int main()
     int &rval2 = ival;
     cout << ival << endl;
     rval2 =2;
-    cout << rval2 << endl;
+    cout << rval2  <<" " << ival << endl;
 
     int i = 0, &r1 = i;
     double d = 3.14159, &r2 = d;
