@@ -9,8 +9,8 @@
 
 int main()
 {
-    Screen myScreen(5, 5, 'X');
-    myScreen.move(4,0).set('#').display();
+    Screen myScreen(5, 2, 'X');
+    myScreen.move(1,1).set('#').display();
     cout << "\n";
     myScreen.display();
     cout << "\n";
