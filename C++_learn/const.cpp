@@ -6,6 +6,7 @@
  ************************************************************************/
 
 #include<iostream>
+#include<vector>
 using namespace std;
 
 int main()
@@ -29,4 +30,15 @@ int main()
     const int &r1 = ci;  //正确：引用及其对象上都是常量
     //r1 = 42;             //错误：r1是对常量的引用
     //int &r2 = ci;        //错误：试图让一个非常量引用指向一个常量对象 
+    //
+    const int a = 1;
+    const int *b = &a;
+    
+    vector<int> vec;
+    const vector<int>::iterator iter = vec.begin();
+    *iter = 10;
+    //++iter;   错误! iter是const
+    vector<int>::const_iterator cIter = vec.begin();
+    //*cIter = 10;  错误：*cIter是const
+    ++cIter;
 }
