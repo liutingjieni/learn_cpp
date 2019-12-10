@@ -63,5 +63,6 @@ int main()
         b2.push_back("about");
     }
 
-    cout <<  b1.front() << b1.back() <<ends;
+    cout << b1.front() << b1.back() << ends;
+    return 0;
 }
