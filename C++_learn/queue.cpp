@@ -7,11 +7,14 @@
 
 #include <iostream>
 #include <memory>
+
 using namespace std;
+
+
 
 class Queue{
 public:
-    void queue_push(void *data);
+    void queue_push(auto data);
     void *queue_pop();
     int queue_size() {return size;}
 
@@ -25,8 +28,7 @@ private:
     size_t size = 0;
 };
 
-
-void Queue::queue_push(void *data)
+void Queue::queue_push(auto data)
 {
     Node *node = (Node *)malloc(sizeof(Node));
     node->data =  data;
@@ -54,6 +56,7 @@ void *Queue::queue_pop()
 
 }
 
+//自定义指针,容易造成内存泄露,产生非法引用
 /*int main()
 {
     Queue *queue = new Queue;
@@ -74,8 +77,11 @@ void *Queue::queue_pop()
     cout << queue->queue_size() << endl;
     cout << *(int *)queue->queue_pop() << endl;
     cout << queue->queue_size() << endl;
+
+    free(queue);
 }*/
 
+// 智能指针
 int main()
 {
     auto queue = make_shared<Queue> ();
@@ -97,4 +103,5 @@ int main()
     cout << *(int *)queue->queue_pop() << endl;
     cout << queue->queue_size() << endl;
 }
+
 
