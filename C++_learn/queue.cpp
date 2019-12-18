@@ -6,6 +6,7 @@
  ************************************************************************/
 
 #include <iostream>
+#include <memory>
 using namespace std;
 
 class Queue{
@@ -53,25 +54,47 @@ void *Queue::queue_pop()
 
 }
 
-int main()
+/*int main()
 {
-    Queue queue;
+    Queue *queue = new Queue;
     int a[10], b[10];
     for (int i = 0; i < 10 ; i++) {
         a[i] = i;
-        queue.queue_push(&a[i]);
+        queue->queue_push(&a[i]);
     }
     for (int i = 0; i < 8 ; i++) {
-        b[i] = *(int *)queue.queue_pop();
+        b[i] = *(int *)queue->queue_pop();
         cout << b[i] << ' ' << ends;
     }
-    cout << queue.queue_size() << endl;
+    cout << queue->queue_size() << endl;
     for (int i = 0; i < 10 ; i++) {
         a[i] = i + 10;
-        queue.queue_push(&a[i]);
+        queue->queue_push(&a[i]);
     }
-    cout << queue.queue_size() << endl;
-    cout << *(int *)queue.queue_pop() << endl;
-    cout << queue.queue_size() << endl;
+    cout << queue->queue_size() << endl;
+    cout << *(int *)queue->queue_pop() << endl;
+    cout << queue->queue_size() << endl;
+}*/
+
+int main()
+{
+    auto queue = make_shared<Queue> ();
+    int a[10], b[10];
+    for (int i = 0; i < 10 ; i++) {
+        a[i] = i;
+        queue->queue_push(&a[i]);
+    }
+    for (int i = 0; i < 8 ; i++) {
+        b[i] = *(int *)queue->queue_pop();
+        cout << b[i] << ' ' << ends;
+    }
+    cout << queue->queue_size() << endl;
+    for (int i = 0; i < 10 ; i++) {
+        a[i] = i + 10;
+        queue->queue_push(&a[i]);
+    }
+    cout << queue->queue_size() << endl;
+    cout << *(int *)queue->queue_pop() << endl;
+    cout << queue->queue_size() << endl;
 }
 
