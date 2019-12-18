@@ -13,13 +13,13 @@ using namespace std;
 class test {
 public:
     test() {};
+    test(int it, double bt) : i(it), b(bt), s("asd") {  }
     test(int it, double bt, const string &st) : i(it), b(bt), s(st)  
     {   
         cout << i << b << s << endl;
-        cout << "haha" << endl; 
     }
     void print();
-public:
+private:
     int i = 2;
     double b = 2;
     string s = "@@@@";
@@ -29,16 +29,18 @@ void test::print()
 {
     cout << i << b << s << endl;
 }
+
 int main()
 {
     shared_ptr<test> p = make_shared<test>(4, 5, "ltlt");
-    cout << "****" << p->i << endl;
     auto q = p;
     p->print();
-    cout << q->i << endl;
 
     test t(3, 4, "qww");
     t.print();
+    
+    test t1(3, 4);
+    t1.print();
 
     test w;
     w.print();
