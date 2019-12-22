@@ -11,7 +11,7 @@
 using namespace std;
 class Queue {
 public:
-    void queue_push(const auto &data);
+    void queue_push(void *data);
     void *queue_pop();
     const int queue_size() const { return size; }
 private:
@@ -25,9 +25,8 @@ private:
 };
 
 //const auto &data 对地址的引用
-void Queue::queue_push(const auto &data)
+void Queue::queue_push(void* data)
 {
-    printf("%p %d\n", data, *data);
     auto node = make_shared<Node> ();
     node->data =  data;
     if (size != 0) {
@@ -57,11 +56,15 @@ void *Queue::queue_pop()
 int main()
 {
     auto queue = make_shared<Queue> ();
-    vector<int> a(10);
+    vector<int> a;
     for (int i = 0; i < 10; ++i) {
-        a[i] = i;
-        queue->queue_push(&a[i]);
+        a.push_back(i);
     }
+
+    for (int it : a) {
+        queue->queue_push(&it);  
+    }
+
 
     for (int i = 0; i < 8 ; ++i) {
         cout << *(int *)queue->queue_pop() << " " << ends;
