@@ -231,9 +231,70 @@ bool operator==(const char *s1 ,String &s2)
     }
     return 0;
 }
-bool operator!=(const String &, const String &);
-bool operator!=(String &, const char *);
-bool operator!=(const char *, String &);
+bool operator!=(const String &s1, const String &s2)
+{
+    int flag = 0;
+    if (s1.len == s1.len) {
+        for(int i = 0; i < s1.len; i++) {
+            if (s1.s[i] == s2.s[i]) {
+                flag++;
+            }
+            else {
+                break;
+            }
+        }
+        if (flag == s1.len) {
+            return 0;
+        }
+    }
+    return 1;
+}
+bool operator!=(String &s1, const char *s2)
+{
+    int len = 0;
+    const char *t = s2;
+    while (*t++) len++;
+    
+    int flag = 0;
+    if (s1.len == len) {
+        for(int i = 0; i < s1.len; i++) {
+            if (s1.s[i] == s2[i]) {
+                flag++;
+            }
+            else {
+                break;
+            }
+        }
+        if (flag == s1.len) {
+            return 0;
+        }
+    }
+    return 1;
+    
+}
+bool operator!=(const char *s1, String &s2)
+{
+    int len = 0;
+    const char *t = s1;
+    while (*t++) len++;
+    
+    int flag = 0;
+    if (len == s2.len) {
+        for(int i = 0; i < len; i++) {
+            if (s1[i] == s2.s[i]) {
+                flag++;
+            }
+            else {
+                break;
+            }
+        }
+        if (flag == len) {
+            return 0;
+        }
+    }
+    return 1;
+    
+}
 
 int main()
 {
@@ -283,4 +344,12 @@ int main()
     cout << (s7 == s2) << endl;
     cout << (s7 == s3) << endl;
     cout << (s7 == s4) << endl;
+
+    const char *t1 = "qwe";
+    s1 = "qwe";
+    cout << (s1 == t1) << endl;
+    cout << (t1 == s1) << endl;
+    s1 = "qw";
+    cout << (s1 == t1) << endl;
+    cout << (t1 == s1) << endl;
 }
