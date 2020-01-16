@@ -15,9 +15,13 @@ friend istream &operator>>(istream &, String &);
 friend String operator+(const String &, const String &);
 friend String operator+(String &, const char *);
 friend String operator+(const char *, String &);
-friend String operator==(const String &, const String &);
-friend String operator==(String &, const char *);
-friend String operator==(const char *, String &);
+friend bool operator==(const String &, const String &);
+friend bool operator==(String &, const char *);
+friend bool operator==(const char *, String &);
+friend bool operator!=(const String &, const String &);
+friend bool operator!=(String &, const char *);
+friend bool operator!=(const char *, String &);
+
 
 public:
     String();
@@ -48,19 +52,21 @@ String::String(const char *t)
     while(*p++) {
         len++;
     }
-    s = new char[len];  
+    s = new char[len + 1];  
     for (int i = 0; i < len ;i++) {
         s[i] = t[i];
     }
+    s[len] = '\0';
 }
 
 String::String(const String& t)
 {
     len = t.len;
-    s = new char[len];
+    s = new char[len + 1];
     for (int i = 0; i < len; i++) {
         s[i] = t.s[i];
     }
+    s[len] = '\0';
 }
 
 String &String::operator=(const char *t)
@@ -71,27 +77,31 @@ String &String::operator=(const char *t)
     while(*p++) {
         len++;
     }
-    s =new char[len];
+    s =new char[len + 1];
     for (int i = 0; i < len; i++) {
         s[i] = t[i];
     }
+    s[len] = '\0';
 }
 
-String &String::operator=(const String &t) {
+String &String::operator=(const String &t) 
+{
     delete []s;
     len = t.len;
-    s = new char[len];
+    s = new char[len + 1];
     for (int i = 0; i < len; i++) {
         s[i] =t.s[i];
     }
+    s[len] = '\0';
 }
 
 String::String(size_t st, char ch) {
     len = st;
-    s = new char[len];
+    s = new char[len + 1];
     for (int i = 0; i < len; i++) {
         s[i] = ch;
     }
+    s[len] = '\0';
 }
 
 ostream &operator<<(ostream &os, const String &s)
@@ -159,6 +169,71 @@ String operator+(String &s1, const char *s2)
     return s;
 }
 
+bool operator==(const String &s1, const String &s2)
+{
+    int flag = 0;
+    if (s1.len == s1.len) {
+        for(int i = 0; i < s1.len; i++) {
+            if (s1.s[i] == s2.s[i]) {
+                flag++;
+            }
+            else {
+                break;
+            }
+        }
+        if (flag == s1.len) {
+            return 1;
+        }
+    }
+    return 0;
+}
+bool operator==(String &s1, const char *s2)
+{
+    int len = 0;
+    const char *t = s2;
+    while (*t++) len++;
+    
+    int flag = 0;
+    if (s1.len == len) {
+        for(int i = 0; i < s1.len; i++) {
+            if (s1.s[i] == s2[i]) {
+                flag++;
+            }
+            else {
+                break;
+            }
+        }
+        if (flag == s1.len) {
+            return 1;
+        }
+    }
+    return 0;
+}
+bool operator==(const char *s1 ,String &s2)
+{
+    int len = 0;
+    const char *t = s1;
+    while (*t++) len++;
+    
+    int flag = 0;
+    if (len == s2.len) {
+        for(int i = 0; i < len; i++) {
+            if (s1[i] == s2.s[i]) {
+                flag++;
+            }
+            else {
+                break;
+            }
+        }
+        if (flag == len) {
+            return 1;
+        }
+    }
+    return 0;
+}
+bool operator!=(const String &, const String &);
+bool operator!=(String &, const char *);
+bool operator!=(const char *, String &);
 
 int main()
 {
@@ -183,9 +258,9 @@ int main()
     cout << s3 << s3.size() << endl;
     
     String s4, s5;
-    cin >> s4 >>s5;
-    cout << s4 << s4.size() << endl;
-    cout << s5 << s5.size() << endl;
+  //  cin >> s4 >>s5;
+   // cout << s4 << s4.size() << endl;
+  //  cout << s5 << s5.size() << endl;
 
     cout << s[1] << s[2] << endl;
 
@@ -200,4 +275,12 @@ int main()
     cout << s6 << s6.size() << endl;
     s6 = s6 + "world" + s5;
     cout << s6 << s6.size() << endl;
+
+    String s7 = "456";
+    s2 = "456";
+    s3 = "12";
+    s4 = "454";
+    cout << (s7 == s2) << endl;
+    cout << (s7 == s3) << endl;
+    cout << (s7 == s4) << endl;
 }
