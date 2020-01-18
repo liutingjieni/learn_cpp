@@ -1,6 +1,7 @@
 #include <iostream>
 using namespace std;
 
+typedef char* Iterator;
 
 class String {
 friend ostream &operator<<(ostream &, const String &); 
@@ -26,6 +27,8 @@ friend bool operator>(const char *, String &);
 friend bool operator>=(const String &, const String &);
 friend bool operator>=(String &, const char *);
 friend bool operator>=(const char *, String &);
+friend String &swap(String &, String &);
+
 public:
     String();
     String(const char *t);
@@ -35,6 +38,20 @@ public:
     String &operator=(const String &);
     char operator[](size_t n) { return s[n]; }
     size_t size() { return len; };
+    Iterator begin();
+    Iterator end();
+    const Iterator cbegin();
+    const Iterator cend();
+    String &swap(String &);
+    void push_back(char);
+    void push_front(char);
+    void push_back(int);
+    void push_front(int);
+    Iterator insert(Iterator, char);
+    Iterator insert(Iterator, int, char);
+    Iterator insert(Iterator, Iterator, Iterator);
+    Iterator insert(Iterator, char);
+
     bool empty() { return len > 0 ? 0 : 1;}
 
     ~String() { delete [] s; }
@@ -69,6 +86,99 @@ String::String(const String& t)
         s[i] = t.s[i];
     }
     s[len] = '\0';
+}
+
+Iterator String::begin()
+{
+    return s;
+}
+
+Iterator String::end()
+{
+    return (s + len);
+}
+
+const Iterator String::cbegin()
+{
+    return s;
+}
+
+const Iterator String::cend()
+{
+    return (s + len);
+}
+
+String &String::swap(String &s2)
+{
+    char*p = s2.s;
+    int t = s2.len;
+    s2.s = s;
+    s2.len = len;
+    s = p;
+    len = t;
+}
+
+String &swap(String &s1, String &s2)
+{
+    char*p = s2.s;
+    int t = s2.len;
+    s2.s = s1.s;
+    s2.len = s1.len;
+    s1.s = p;
+    s1.len = t;
+    
+}
+
+void String::push_back(char ch)
+{
+    char *p = s;
+    char *t = new char[len + 1];
+    for (int i = 0; i < len; i++) {
+        t[i] = s[i]; 
+    }
+    t[len] = ch;
+    len = len + 1;
+    s = t;
+    delete []p;
+}
+
+void String::push_front(char ch)
+{
+    char *p = s;
+    char *t = new char[len + 1];
+    t[0] = ch;
+    for (int i = 0; i < len; i++) {
+        t[i + 1] = s[i]; 
+    }
+    len = len + 1;
+    s = t;
+    delete []p;
+}
+
+void String::push_back(int ch)
+{
+    char *p = s;
+    char *t = new char[len + 1];
+    for (int i = 0; i < len; i++) {
+        t[i] = s[i]; 
+    }
+    t[len] = ch;
+    len = len + 1;
+    s = t;
+    delete []p;
+}
+
+void String::push_front(int ch)
+{
+    char *p = s;
+    char *t = new char[len + 1];
+    t[0] = ch;
+    for (int i = 0; i < len; i++) {
+        t[i + 1] = s[i]; 
+    }
+    len = len + 1;
+    s = t;
+    delete []p;
 }
 
 String &String::operator=(const char *t)
@@ -627,5 +737,19 @@ int main()
     cout << (s1 >= t1) << endl;
     cout << (s1 <= t1) << endl;
     
+    cout << s1 << s2 << endl;
+    s1.swap(s2);
+    cout << s1 << s2 << endl;
+    swap(s1, s2);
+    cout << s1 << s2 << endl;
+    
+    s1.push_back('A');
+    cout << s1 << endl;
+    s1.push_front('A');
+    cout << s1 << endl;
 
+    s1.push_back(36);
+    cout << s1 << endl;
+    s1.push_front(36);
+    cout << s1 << endl;
 }
