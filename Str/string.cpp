@@ -1,10 +1,3 @@
-/*************************************************************************
-	> File Name: String.cpp
-	> Author:jieni 
-	> Mail: 
-	> Created Time: 2020年01月16日 星期四 11时41分08秒
- ************************************************************************/
-
 #include <iostream>
 using namespace std;
 
@@ -21,8 +14,18 @@ friend bool operator==(const char *, String &);
 friend bool operator!=(const String &, const String &);
 friend bool operator!=(String &, const char *);
 friend bool operator!=(const char *, String &);
-
-
+friend bool operator<(const String &, const String &);
+friend bool operator<(String &, const char *);
+friend bool operator<(const char *, String &);
+friend bool operator<=(const String &, const String &);
+friend bool operator<=(String &, const char *);
+friend bool operator<=(const char *, String &);
+friend bool operator>(const String &, const String &);
+friend bool operator>(String &, const char *);
+friend bool operator>(const char *, String &);
+friend bool operator>=(const String &, const String &);
+friend bool operator>=(String &, const char *);
+friend bool operator>=(const char *, String &);
 public:
     String();
     String(const char *t);
@@ -39,7 +42,6 @@ private:
     char *s;
     size_t len = 0;
 };
-
 
 String::String()
 {
@@ -234,7 +236,7 @@ bool operator==(const char *s1 ,String &s2)
 bool operator!=(const String &s1, const String &s2)
 {
     int flag = 0;
-    if (s1.len == s1.len) {
+    if (s1.len == s2.len) {
         for(int i = 0; i < s1.len; i++) {
             if (s1.s[i] == s2.s[i]) {
                 flag++;
@@ -296,6 +298,274 @@ bool operator!=(const char *s1, String &s2)
     
 }
 
+bool operator<(const String &s1, const String &s2)
+{
+    int flag = 0;
+    int len = s1.len < s2.len ? s1.len : s2.len;
+    for(int i = 0; i < len; i++) {
+        if (s1.s[i] == s2.s[i]) {
+            flag++;
+        }
+        else if(s1.s[i] < s2.s[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return s1.len >= s2.len ? 0 : 1;
+    }
+}
+
+bool operator<(String &s1, const char *s2)
+{
+    int len_t = 0;
+    const char *t = s2;
+    while (*t++) len_t++;
+    
+    int flag = 0;
+    int len = s1.len < len_t ? s1.len : len_t;
+    for(int i = 0; i < len; i++) {
+        if (s1.s[i] == s2[i]) {
+            flag++;
+        }
+        else if(s1.s[i] < s2[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return s1.len >= len_t ? 0 : 1;
+    }
+}
+bool operator<(const char *s1, String &s2)
+{
+    int len_t = 0;
+    const char *t = s1;
+    while (*t++) len_t++;
+    
+    int flag = 0;
+    int len = len_t < s2.len ? len_t : s2.len;
+    for(int i = 0; i < len; i++) {
+        if (s1[i] == s2.s[i]) {
+            flag++;
+        }
+        else if(s1[i] < s2.s[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return len_t >= s2.len ? 0 : 1;
+    }
+} 
+
+bool operator<=(const String &s1, const String &s2)
+{
+    int flag = 0;
+    int len = s1.len < s2.len ? s1.len : s2.len;
+    for(int i = 0; i < len; i++) {
+        if (s1.s[i] == s2.s[i]) {
+            flag++;
+        }
+        else if(s1.s[i] < s2.s[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return s1.len <= s2.len ? 1 : 0;
+    }
+}
+
+bool operator<=(String &s1, const char *s2)
+{
+    int len_t = 0;
+    const char *t = s2;
+    while (*t++) len_t++;
+    
+    int flag = 0;
+    int len = s1.len < len_t ? s1.len : len_t;
+    for(int i = 0; i < len; i++) {
+        if (s1.s[i] == s2[i]) {
+            flag++;
+        }
+        else if(s1.s[i] < s2[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return s1.len <= len_t ? 1 : 0;
+    }
+}
+bool operator<=(const char *s1, String &s2)
+{
+    int len_t = 0;
+    const char *t = s1;
+    while (*t++) len_t++;
+    
+    int flag = 0;
+    int len = len_t < s2.len ? len_t : s2.len;
+    for(int i = 0; i < len; i++) {
+        if (s1[i] == s2.s[i]) {
+            flag++;
+        }
+        else if(s1[i] < s2.s[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return len_t <= s2.len ? 1 : 0;
+    }
+} 
+
+bool operator>(const String &s1, const String &s2)
+{
+    int flag = 0;
+    int len = s1.len < s2.len ? s1.len : s2.len;
+    for(int i = 0; i < len; i++) {
+        if (s1.s[i] == s2.s[i]) {
+            flag++;
+        }
+        else if(s1.s[i] > s2.s[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return s1.len <= s2.len ? 0 : 1;
+    }
+}
+
+bool operator>(String &s1, const char *s2)
+{
+    int len_t = 0;
+    const char *t = s2;
+    while (*t++) len_t++;
+    
+    int flag = 0;
+    int len = s1.len < len_t ? s1.len : len_t;
+    for(int i = 0; i < len; i++) {
+        if (s1.s[i] == s2[i]) {
+            flag++;
+        }
+        else if(s1.s[i] > s2[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return s1.len <= len_t ? 0 : 1;
+    }
+}
+bool operator>(const char *s1, String &s2)
+{
+    int len_t = 0;
+    const char *t = s1;
+    while (*t++) len_t++;
+    
+    int flag = 0;
+    int len = len_t < s2.len ? len_t : s2.len;
+    for(int i = 0; i < len; i++) {
+        if (s1[i] == s2.s[i]) {
+            flag++;
+        }
+        else if(s1[i] > s2.s[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return len_t <= s2.len ? 0 : 1;
+    }
+} 
+
+bool operator>=(const String &s1, const String &s2)
+{
+    int flag = 0;
+    int len = s1.len < s2.len ? s1.len : s2.len;
+    for(int i = 0; i < len; i++) {
+        if (s1.s[i] == s2.s[i]) {
+            flag++;
+        }
+        else if(s1.s[i] > s2.s[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return s1.len >= s2.len ? 1 : 0;
+    }
+}
+
+bool operator>=(String &s1, const char *s2)
+{
+    int len_t = 0;
+    const char *t = s2;
+    while (*t++) len_t++;
+    
+    int flag = 0;
+    int len = s1.len < len_t ? s1.len : len_t;
+    for(int i = 0; i < len; i++) {
+        if (s1.s[i] == s2[i]) {
+            flag++;
+        }
+        else if(s1.s[i] > s2[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return s1.len >= len_t ? 1 : 0;
+    }
+}
+bool operator>=(const char *s1, String &s2)
+{
+    int len_t = 0;
+    const char *t = s1;
+    while (*t++) len_t++;
+    
+    int flag = 0;
+    int len = len_t < s2.len ? len_t : s2.len;
+    for(int i = 0; i < len; i++) {
+        if (s1[i] == s2.s[i]) {
+            flag++;
+        }
+        else if(s1[i] > s2.s[i]) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return len_t >= s2.len ? 1 : 0;
+    }
+} 
+
 int main()
 {
     String s("abc");
@@ -349,7 +619,13 @@ int main()
     s1 = "qwe";
     cout << (s1 == t1) << endl;
     cout << (t1 == s1) << endl;
-    s1 = "qw";
+    s1 = "abc";
     cout << (s1 == t1) << endl;
     cout << (t1 == s1) << endl;
+    cout << (s1 > t1) << endl;
+    cout << (s1 < t1) << endl;
+    cout << (s1 >= t1) << endl;
+    cout << (s1 <= t1) << endl;
+    
+
 }

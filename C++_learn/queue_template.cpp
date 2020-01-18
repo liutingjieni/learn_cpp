@@ -9,19 +9,21 @@
 #include <memory>
 using namespace std;
 
-template <typename T> class Queue {
+template <typename T> 
+class Node {
 public:
-    Queue() {  }
+    T& data;
+    Node *next;
+    Node (T &data) : data(data), next(0) {   }
+};
+
+template <typename T> class Queue :public Node<T> {
+public:
+    Queue(T &data) : Node(T &data){  }
     void queue_push(T &data);
     T &queue_pop();
     const int queue_size() const { return size;  }
 private:
-    class Node {
-    public:
-        T& data;
-        Node *next;
-        Node (T &data) : data(data), next(0) {  }
-    };
     Node *head;
     Node *end;
     size_t size = 0;
@@ -56,7 +58,7 @@ T &Queue<T>::queue_pop()
     }
 }
 
-int main()
+/*int main()
 {
     Queue<int> queue;
     int a[10];
