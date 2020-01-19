@@ -47,11 +47,11 @@ public:
     void push_front(char);
     void push_back(int);
     void push_front(int);
+    void pop_back();
+    void pop_front();
     Iterator insert(Iterator, char);
     Iterator insert(Iterator, int, char);
     Iterator insert(Iterator, Iterator, Iterator);
-    Iterator insert(Iterator, char);
-
     bool empty() { return len > 0 ? 0 : 1;}
 
     ~String() { delete [] s; }
@@ -131,54 +131,121 @@ String &swap(String &s1, String &s2)
 
 void String::push_back(char ch)
 {
-    char *p = s;
     char *t = new char[len + 1];
     for (int i = 0; i < len; i++) {
         t[i] = s[i]; 
     }
     t[len] = ch;
     len = len + 1;
+    delete []s;
     s = t;
-    delete []p;
 }
 
 void String::push_front(char ch)
 {
-    char *p = s;
     char *t = new char[len + 1];
     t[0] = ch;
     for (int i = 0; i < len; i++) {
         t[i + 1] = s[i]; 
     }
     len = len + 1;
+    delete []s;
     s = t;
-    delete []p;
 }
 
 void String::push_back(int ch)
 {
-    char *p = s;
     char *t = new char[len + 1];
     for (int i = 0; i < len; i++) {
         t[i] = s[i]; 
     }
     t[len] = ch;
     len = len + 1;
+    delete []s;
     s = t;
-    delete []p;
 }
 
 void String::push_front(int ch)
 {
-    char *p = s;
     char *t = new char[len + 1];
     t[0] = ch;
     for (int i = 0; i < len; i++) {
         t[i + 1] = s[i]; 
     }
     len = len + 1;
+    delete []s;
     s = t;
-    delete []p;
+}
+
+Iterator String::insert(Iterator it, char ch)
+{
+    char *t = new char[len + 1];
+    int i;
+    for (i = 0; begin() + i != it; i++) {
+        t[i] = s[i];
+    }
+    t[i] = ch;
+    for(int j = i; j < len + 1; j++) {
+        t[j + 1] = s[j];
+    }
+    len = len + 1;
+    delete []s;
+    s = t;
+    return &t[i];
+}
+
+Iterator String::insert(Iterator it, int n, char ch)
+{
+    char *t = new char[len + n];
+    int i;
+    for (i = 0; begin() + i != it; i++) {
+        t[i] = s[i];
+    }
+    for(int j = i + n ; j < len + n; j++) {
+        t[j] = s[j-n];
+    }
+    len = len + n;
+    while (n--) t[i + n] = ch;
+    delete []s;
+    s = t;
+    return &t[i];
+}
+
+Iterator String::insert(Iterator it, Iterator it1, Iterator it2)
+{
+    int n = 0;
+    for (auto t = it1; t != it2; t++) n++;
+    char *t = new char[len + n + 1];
+    int i, j;
+    for (i = 0; begin() + i != it; i++) {
+        t[i] = s[i];
+    }
+    for (j = i; j < i + n; j++) {
+        t[j] = *it1;
+        it1++;
+    }
+    for( ; j < len + n; j++) {
+        t[j] = s[j - n];
+    }
+    t[len + n] = '\0';
+    len = len + n;
+    delete []s;
+    s = t;
+    return &it[i];
+    
+}
+void String::pop_back()
+{
+    len = len - 1;
+    s[len] = '\0';
+}
+void String::pop_front()
+{
+    for(int i = 1; i < len; i++) {
+        s[i - 1] =s[i];
+    }
+    len = len -1;
+    s[len - 1] = '\0';
 }
 
 String &String::operator=(const char *t)
@@ -744,12 +811,26 @@ int main()
     cout << s1 << s2 << endl;
     
     s1.push_back('A');
-    cout << s1 << endl;
+    cout << s1 << s1.size() << endl;
     s1.push_front('A');
-    cout << s1 << endl;
+    cout << s1 << s1.size() << endl;
 
     s1.push_back(36);
-    cout << s1 << endl;
+    cout << s1 << s1.size() << endl;
     s1.push_front(36);
-    cout << s1 << endl;
+    cout << s1 << s1.size() << endl;
+
+    Iterator tp = s1.insert(s1.begin() + 1, 'W');
+    cout <<s1 << s1.size() <<endl;
+    auto tp1 = s1.insert(s1.begin(), 3, 'B');
+    cout <<s1 << s1.size() << endl;
+    cout << s2 << s2.size() << endl;
+    
+    auto tp2 = s1.insert(s1.begin()+2, s2.begin(), s2.end());
+    cout << s1 << " "<< s1.size() << endl;
+    
+    s1.pop_back();
+    cout << s1 << " "<< s1.size() << endl;
+    s1.pop_front();
+    cout << s1 << s1.size() << endl;
 }
