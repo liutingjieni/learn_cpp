@@ -21,6 +21,7 @@ private:
 
 HasPtr& HasPtr::operator=(const HasPtr &rhs)
 {
+    //如果一个对象赋予他自身,赋值运算符必须能正确工作
     auto newp = new string(*rhs.ps);
     delete ps;
     ps = newp;
