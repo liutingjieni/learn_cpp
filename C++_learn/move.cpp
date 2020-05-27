@@ -42,4 +42,5 @@ int main()
         cout << t[i] << " ";
     }
     cout << endl;
+    v
 }

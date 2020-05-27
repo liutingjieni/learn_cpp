@@ -23,5 +23,5 @@ int main()
     PrintString printer;
     printer("s");
     PrintString errors(cerr, '\n');
-    errors("s");
+    errors("cerr");
 }
