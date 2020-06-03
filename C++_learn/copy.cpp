@@ -10,6 +10,7 @@ using namespace std;
 
 class base {
 public:
+    base() {  }
     base(const base &b) : class_num(b.class_num), class_name(b.class_name) {  }
     base(int n1, const string &str1): class_num(n1), class_name(str1) {  }
 private:
@@ -20,7 +21,9 @@ private:
 class stu : public base {
 public:
     // copying函数应该确保复制"对象内的所有成员变量"及"所有base class 成员",
+    stu() {  }
     stu(int n, const string &str, int n1, const string &str1): num(n), name(str), base(n1, str1){  }
+    stu(int n, const string &str): num(n), name(str) {  }
     stu(const stu &s) : num(s.num), name(s.name), base(s) {  }
     stu& operator=(const stu &s)
     {
@@ -34,6 +37,8 @@ private:
 
 int main()
 {
+    stu t;
     stu s(1, "la", 2, "er");
+    stu s1(1, "la");
 }
 
