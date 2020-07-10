@@ -28,10 +28,10 @@ int main()
     cout << t << s3 << endl;
 
     string s4;
-    cin >> s4;
-    cout << s4 << s4.size() <<endl;
-    cin >> s4;
-    cout << s4 << s4.size() << endl;
+   // cin >> s4;
+   // cout << s4 << s4.size() <<endl;
+    //cin >> s4;
+   // cout << s4 << s4.size() << endl;
 
     const char *t1 = "qwe";
     s4 = "123";
@@ -57,4 +57,17 @@ int main()
         cout << (s1 < t1) << endl;
         cout << (s1 >= t1) << endl;
         cout << (s1 <= t1) << endl;
+
+    cout << s1 << " " << s3 << endl;
+    s1.swap(s3);
+    cout << s1 << " " << s3 << endl;
+
+    s1.push_back(36);
+    cout << s1 << endl;;
+
+    auto p = s1.insert(s1.end(),'1');
+    cout << *p << s1 << endl;
+   
+    int i = s1.find('A');
+    cout << i << s1[i] << endl;
 }
