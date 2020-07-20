@@ -20,7 +20,7 @@ public:
     m_vector<T>(int n, const T& t);
     m_vector<T>& operator = (const m_vector<T>& t);
     bool empty() {return last - first;}
-    int size() {return (last - first) / sizeof(T); }
+    int size() {return last - first + 1; }
     T operator[](size_t n) {return *(first + n);}
     void push_back(const T& t);
 
@@ -33,19 +33,19 @@ private:
 
 template <typename T> m_vector<T>::m_vector()
     : first(new T[10]),
-      end(first + sizeof(T) *9)
+      last(first),
+      end(first + 9)
 {
-    
 }
 
 template <typename T>
 m_vector<T>::m_vector(const m_vector<T>& t)
-    : first(new T[(end-first) / sizeof(T)]),
+    : first(new T[(t.end-t.first)]),
       end(first + (t.end - t.first)),
       last(first + (t.last - t.first))
 {
-    int num = (t.last - t.first) / sizeof(T);
-    cout << num << endl;
+
+    int num = (t.last - t.first);
     for (int i = 0; i < num; i++) {
         *(first + i) = *(t.first + i );
     }
@@ -54,53 +54,58 @@ m_vector<T>::m_vector(const m_vector<T>& t)
 template <typename T>
 m_vector<T>& m_vector<T>::operator=(const m_vector<T>& t)
 {
-    cout << "AAAAA" << endl;
-    //delete []first;
-    //first = new T[(end-first) / sizeof(T)];
-    //end = first + (t.end - t.first);
-    //last = first + (t.last - t.first);
+    delete []first;
+    first = new T[(end-first)];
+    end = first + (t.end - t.first);
+    last = first + (t.last - t.first);
 
-    //int num = (t.last - t.first) / sizeof(T);
-    //for (int i = 0; i < num; i++) {
-      //  *(first + i) = *(t.first + i);
-        //cout << *(first +i) << endl;
-    //}
-    //return this;
+    int num = (t.last - t.first);
+    for (int i = 0; i < num; i++) {
+        *(first + i) = *(t.first + i);
+        cout << *(first +i) << endl;
+    }
 }
 
 template <typename T>
 m_vector<T>::m_vector(int n, const T& t)
     : first(new T[n]),
-      last(first + (n * sizeof(T))),
+      last(first + (n -1)),
       end(last)
 {
     for (int i = 0; i < n; i++) {
         *(first + i) = t;
     }
+
 }
 
 template <typename T>
 m_vector<T>::m_vector(int n)
     : first(new T[n]),
-      last(first + (n * sizeof(T))),
+      last(first + n -1),
       end(last)
 {
-    cout << n << endl; 
 }
 
 template <typename T>
 void m_vector<T>::push_back(const T& t)
 {
     if (end - last > 0) {
-        *(++last) = t;
+        if(last == first) {
+            *last = t;
+            last++;
+        }
+        else {
+            *(++last) = t;
+        }
     }
     else {
-        T *temp = new T[(end - first)/sizeof(T) * 2];
-        for(int i = 0; i < (end - first); i++) {
+        int n = (end - first + 1);
+        T *temp = new T[n * 2];
+        for(int i = 0; i < n; i++) {
             *(temp + i) = *(first + i);
         }
         last = temp + (last - first);
-        end = temp + (end - first) * 2;
+        end = temp + (end - first) * 2 + 1;
         delete []first;
         first = temp;
         *(++last) = t;
@@ -109,19 +114,14 @@ void m_vector<T>::push_back(const T& t)
 
 int main()
 {
-    m_vector<int> t(2, 3);
-    m_vector<int> t1(t);
+    m_vector<int> t;
+    m_vector<int> t2(3,10);
+    m_vector<int> t1(t2);
     m_vector<int> t3(5);
-    //m_vector<int> t2=t; // wrong->
-    m_vector<int> t4;
-    t4 = t;
-    cout << t.empty();
-    cout << t.size() << endl;
-    cout << t[0] << " " << t[1] << endl;
-    t.push_back(5);
-    cout << t.size() << endl;
-    //t3.push_back(6);
-    //
+    t3.push_back(11);
+    t.push_back(12);
+    m_vector<int> t4 = t;
+
 }
 
 #endif
