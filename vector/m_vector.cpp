@@ -10,19 +10,30 @@
 #include <iostream>
 using namespace std;
 
+
+
 template <typename T> 
 class m_vector {
-
 public:
+    typedef T* Iterator;
+    
     m_vector<T>(); 
     m_vector<T>(const m_vector<T>& t);
     m_vector<T>(int n);
     m_vector<T>(int n, const T& t);
-    m_vector<T>& operator = (const m_vector<T>& t);
     bool empty() {return last - first;}
-    int size() {return last - first + 1; }
+    int size() {return last - first; }
     T operator[](size_t n) {return *(first + n);}
     void push_back(const T& t);
+    m_vector<T>& operator = (const m_vector<T>& t);
+    Iterator begin_() {return first;}
+    Iterator end_() { return last; }
+    bool operator == (const m_vector<T>& t);
+    bool operator != (const m_vector<T>& t);
+    int operator < (const m_vector<T>& t);
+    bool operator <= (const m_vector<T>& t);
+    int operator > (const m_vector<T>& t);
+    bool operator >= (const m_vector<T>& t);
 
 
 private:
@@ -34,7 +45,7 @@ private:
 template <typename T> m_vector<T>::m_vector()
     : first(new T[10]),
       last(first),
-      end(first + 9)
+      end(first + 10)
 {
 }
 
@@ -69,7 +80,7 @@ m_vector<T>& m_vector<T>::operator=(const m_vector<T>& t)
 template <typename T>
 m_vector<T>::m_vector(int n, const T& t)
     : first(new T[n]),
-      last(first + (n -1)),
+      last(first + n),
       end(last)
 {
     for (int i = 0; i < n; i++) {
@@ -81,7 +92,7 @@ m_vector<T>::m_vector(int n, const T& t)
 template <typename T>
 m_vector<T>::m_vector(int n)
     : first(new T[n]),
-      last(first + n -1),
+      last(first + n),
       end(last)
 {
 }
@@ -95,20 +106,137 @@ void m_vector<T>::push_back(const T& t)
             last++;
         }
         else {
-            *(++last) = t;
+            *last = t;
+            last++;
         }
     }
     else {
-        int n = (end - first + 1);
+        int n = end - first;
         T *temp = new T[n * 2];
         for(int i = 0; i < n; i++) {
             *(temp + i) = *(first + i);
         }
         last = temp + (last - first);
-        end = temp + (end - first) * 2 + 1;
+        end = temp + (end - first) * 2 ;
         delete []first;
         first = temp;
-        *(++last) = t;
+        *last = t;
+    }
+}
+template <typename T>
+bool m_vector<T>::operator==(const m_vector<T>& t)
+{
+    if (last - first != t.last - t.first) {
+        return 0;
+    }
+    for(int i = 0; i < last - first; i++) {
+        if (*(first + i) != *(t.first + i)) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+template <typename T>
+bool m_vector<T>::operator!=(const m_vector<T>& t)
+{
+    if (last - first != t.last - t.first) {
+        return 1;
+    }
+    for(int i = 0; i < last - first; i++) {
+        if (*(first + i) != *(t.first + i)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+template <typename T>
+int m_vector<T>::operator>(const m_vector<T>& t)
+{
+    int flag = 0;
+    int n1 = last - first;
+    int n2 = t.last - t.first;
+    int len = n1 < n2 ? n1 : n2; 
+    for(int i = 0; i < len; i++) {
+        if (*(first + i) == *(t.first + i)) {
+            flag++;
+        }
+        else if (*(first + i) > *(t.first + i)) {
+            return 1;
+        }
+        else {
+            return -1;
+        }
+    }
+    if (flag == len) {
+        return 0;
+    }
+}
+template <typename T>
+int m_vector<T>::operator<(const m_vector<T>& t)
+{
+    int flag = 0;
+    int n1 = last - first;
+    int n2 = t.last - t.first;
+    int len = n1 < n2 ? n1 : n2; 
+    for(int i = 0; i < len; i++) {
+        if (*(first + i) == *(t.first + i)) {
+            flag++;
+        }
+        else if (*(first + i) < *(t.first + i)) {
+            return 1;
+        }
+        else {
+            return -1;
+        }
+    }
+    if (flag == len) {
+        return 0;
+    }
+}
+template <typename T>
+bool m_vector<T>::operator>=(const m_vector<T>& t)
+{
+    int flag = 0;
+    int n1 = last - first;
+    int n2 = t.last - t.first;
+    int len = n1 < n2 ? n1 : n2; 
+    for(int i = 0; i < len; i++) {
+        if (*(first + i) == *(t.first + i)) {
+            flag++;
+        }
+        else if (*(first + i) < *(t.first + i)) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return 1;
+    }
+}
+template <typename T>
+bool m_vector<T>::operator<=(const m_vector<T>& t)
+{
+    int flag = 0;
+    int n1 = last - first;
+    int n2 = t.last - t.first;
+    int len = n1 < n2 ? n1 : n2; 
+    for(int i = 0; i < len; i++) {
+        if (*(first + i) == *(t.first + i)) {
+            flag++;
+        }
+        else if (*(first + i) < *(t.first + i)) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+    if (flag == len) {
+        return 1;
     }
 }
 
@@ -121,7 +249,13 @@ int main()
     t3.push_back(11);
     t.push_back(12);
     m_vector<int> t4 = t;
-
+    cout << *(t4.begin_()) <<*(t4.end_()) << endl;
+    cout << (t == t4);
+    cout << (t != t2);
+    cout << (t > t4);
+    cout << (t >= t4);
+    cout << (t < t4);
+    cout << (t <= t4);
 }
 
 #endif
