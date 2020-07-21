@@ -9,7 +9,6 @@
 #define _M_VECTOR_H
 #include <iostream>
 using namespace std;
-
 template <typename> class m_vector;
 
 template <typename T> m_vector<T>& Swap(m_vector<T> &, m_vector<T> &);
@@ -85,7 +84,6 @@ m_vector<T>& m_vector<T>::operator=(const m_vector<T>& t)
     int num = (t.last - t.first);
     for (int i = 0; i < num; i++) {
         *(first + i) = *(t.first + i);
-        cout << *(first +i) << endl;
     }
 }
 
@@ -323,7 +321,6 @@ T* m_vector<T>::insert(T *it, int n, const T & t)
         last = last + n ;
     }
     else {
-        cout << "lalal" << endl;
         int len = (end - first) * 2;
         T *temp = new T[len];
         while (len < last - first + n ) {
@@ -354,7 +351,6 @@ T* m_vector<T>::insert(T *it, T*n, T*m)
     if (end - last >= m - n) {
         for(auto a = last + (m - n) - 1; a > it; a--) {
             *a = *(a - (m - n));
-            cout << *a << endl; 
         }
         int t = m - n;
         for(int i = 0; i < t; i++) {
@@ -409,40 +405,5 @@ T* m_vector<T>::erase(T *n, T* m)
     }
     return m;
 }
-
-
-int main()
-{
-    m_vector<int> t;
-    m_vector<int> t2(3,10);
-    m_vector<int> t1(t2);
-    m_vector<int> t3(5);
-    t3.push_back(11);
-    t.push_back(12);
-    t.push_back(12);
-    m_vector<int> t4 = t;
-    cout << *(t4.begin_()) <<*(t4.end_()) << endl;
-    cout << (t == t4);
-    cout << (t != t2);
-    cout << (t > t4);
-    cout << (t >= t4);
-    cout << (t < t4);
-    cout << (t <= t4);
-    cout << t2.size() << endl;
-    t2.insert(t2.begin_() + 1, 1);
-    cout << t2.size() << endl;
-    for(int i = 0; i < t2.size(); i++) {
-        cout << "22222222222222 "<< t2[i] << endl;
-    }
-    t2.insert(t2.begin_() + 1,3, 2);
-    for(int i = 0; i < t2.size(); i++) {
-        cout << "22222222222222 "<< t2[i] << endl;
-    }
-    t2.insert(t2.begin_() + 1, t3.begin_(), t3.begin_()+2);
-    for(int i = 0; i < t2.size(); i++) {
-        cout << "3333333333333 "<< t2[i] << endl;
-    }
-}
-
 
 #endif
