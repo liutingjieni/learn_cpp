@@ -10,10 +10,13 @@
 #include <iostream>
 using namespace std;
 
+template <typename> class m_vector;
 
+template <typename T> m_vector<T>& Swap(m_vector<T> &, m_vector<T> &);
 
 template <typename T> 
 class m_vector {
+friend m_vector<T>& Swap<T> (m_vector<T> &, m_vector<T> &);
 public:
     typedef T* Iterator;
     
@@ -24,6 +27,7 @@ public:
     bool empty() {return last - first;}
     int size() {return last - first; }
     T operator[](size_t n) {return *(first + n);}
+    T at(size_t n) { return *(first +n); }
     void push_back(const T& t);
     m_vector<T>& operator = (const m_vector<T>& t);
     Iterator begin_() {return first;}
@@ -34,7 +38,15 @@ public:
     bool operator <= (const m_vector<T>& t);
     int operator > (const m_vector<T>& t);
     bool operator >= (const m_vector<T>& t);
+    m_vector<T>& Swap(m_vector<T> &);
+    Iterator insert(Iterator, const T &);
+    Iterator insert(Iterator, int, const T &);
+    Iterator insert(Iterator, Iterator, Iterator);
+    Iterator erase(Iterator);
+    Iterator erase(Iterator, Iterator);
+    void clear() { delete []first; }
 
+    ~m_vector<T>() { delete []first; }
 
 private:
     T *first;
@@ -121,6 +133,7 @@ void m_vector<T>::push_back(const T& t)
         delete []first;
         first = temp;
         *last = t;
+        last++;
     }
 }
 template <typename T>
@@ -240,6 +253,164 @@ bool m_vector<T>::operator<=(const m_vector<T>& t)
     }
 }
 
+template <typename T> 
+m_vector<T>& m_vector<T>::Swap(m_vector<T> &m)
+{
+    T*t;
+    t = m.first;
+    m.first = first;
+    first = t;
+    t = m.last;
+    m.last = last;
+    last = t;
+    t = m.end;
+    m.end = end;
+    end = t; 
+}
+
+template <typename T> 
+m_vector<T>& Swap(m_vector<T> &m, m_vector<T> &n)
+{
+    T*t;
+    t = m.first;
+    m.first = n.first;
+    n.first = t;
+    t = m.last;
+    m.last = n.last;
+    n.last = t;
+    t = m.end;
+    m.end = n.end;
+    n.end = t; 
+}
+
+template <typename T> 
+T* m_vector<T>::insert(T *it, const T & t)
+{
+    if (end - last > 0) {
+        for(auto a = last; a > it; a--) {
+            *a = *(a - 1);
+        }
+        *it = t;
+    }
+    else {
+        int n = end - first;
+        T *temp = new T[n * 2];
+        int i;
+        for(i = 0; first + i < it; i++) {
+            *(temp + i) = *(first + i);
+        }
+        *(temp + i++) = t;
+        for(;i < last - first + 1; i++) {
+            *(temp + i) = *(first + i - 1);
+        }
+        last = temp + (last - first) + 1;
+        end = temp + (end - first) * 2 ;
+        delete []first;
+        first = temp;
+    }
+}
+
+template <typename T> 
+T* m_vector<T>::insert(T *it, int n, const T & t)
+{
+    if (end - last >= n) {
+        for(auto a = last + n - 1; a > it; a--) {
+            *a = *(a - n);
+        }
+        for(int i = 0; i < n; i++) {
+            *(it + i) = t;
+        }
+        last = last + n ;
+    }
+    else {
+        cout << "lalal" << endl;
+        int len = (end - first) * 2;
+        T *temp = new T[len];
+        while (len < last - first + n ) {
+            len = len * 2;
+            delete []temp;
+            T * temp = new T[len];
+        }
+        int i;
+        for(i = 0; first + i < it; i++) {
+            *(temp + i) = *(first + i);
+        }
+        int tmp = n + i;
+        for(; i < tmp; i++) {
+            *(temp + i) = t;
+        }
+        for(;i < last - first + n; i++) {
+            *(temp + i) = *(first + i - n);
+        }
+        last = temp + (last - first) + n;
+        end = temp + (end - first) * 2 ;
+        delete []first;
+        first = temp;
+    }
+}
+template <typename T> 
+T* m_vector<T>::insert(T *it, T*n, T*m)
+{
+    if (end - last >= m - n) {
+        for(auto a = last + (m - n) - 1; a > it; a--) {
+            *a = *(a - (m - n));
+            cout << *a << endl; 
+        }
+        int t = m - n;
+        for(int i = 0; i < t; i++) {
+            *(it + i) = *(n++);
+        }
+        last = last + t;
+    }
+    else {
+        int len = end - first;
+        len = len * 2;
+        T *temp = new T[len];
+        while (len < last - first + (m - n) ) {
+            len = len * 2;
+            delete []temp;
+            T * temp = new T[len];
+        }
+        int i;
+        for(i = 0; first + i < it; i++) {
+            *(temp + i) = *(first + i);
+        }
+        int t = (m - n) + i;
+        T* tmp = n;
+        for(; i < t; i++, tmp++) {
+            *(temp + i) = *tmp;
+        }
+        for(;i < last - first + m - n; i++) {
+            *(temp + i) = *(first + i - (m - n));
+        }
+        last = temp + (last - first) + (m - n);
+        end = temp + (end - first) * len  ;
+        delete []first;
+        first = temp;
+    }
+}
+
+template <typename T> 
+T* m_vector<T>::erase(T *it)
+{
+    last--;
+    for(auto a = it; a < last; a++) {
+        *a = *(a + 1);
+    }
+    return it + 1;
+}
+
+template <typename T> 
+T* m_vector<T>::erase(T *n, T* m)
+{
+    last = last - (m - n);
+    for(auto a = n; a < last; a++) {
+        *a = *(a + (m - n));
+    }
+    return m;
+}
+
+
 int main()
 {
     m_vector<int> t;
@@ -247,6 +418,7 @@ int main()
     m_vector<int> t1(t2);
     m_vector<int> t3(5);
     t3.push_back(11);
+    t.push_back(12);
     t.push_back(12);
     m_vector<int> t4 = t;
     cout << *(t4.begin_()) <<*(t4.end_()) << endl;
@@ -256,6 +428,21 @@ int main()
     cout << (t >= t4);
     cout << (t < t4);
     cout << (t <= t4);
+    cout << t2.size() << endl;
+    t2.insert(t2.begin_() + 1, 1);
+    cout << t2.size() << endl;
+    for(int i = 0; i < t2.size(); i++) {
+        cout << "22222222222222 "<< t2[i] << endl;
+    }
+    t2.insert(t2.begin_() + 1,3, 2);
+    for(int i = 0; i < t2.size(); i++) {
+        cout << "22222222222222 "<< t2[i] << endl;
+    }
+    t2.insert(t2.begin_() + 1, t3.begin_(), t3.begin_()+2);
+    for(int i = 0; i < t2.size(); i++) {
+        cout << "3333333333333 "<< t2[i] << endl;
+    }
 }
+
 
 #endif
