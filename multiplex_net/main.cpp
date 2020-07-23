@@ -7,11 +7,15 @@
 
 #include <iostream>
 #include "socket.h"
-#include "eventloop.h"
+#include "epoll.h"
 using namespace std;
 
 int main()
 {
-   Socket sockfd(8888);
-   //Eventloop loop(sockfd);
+    Socket sockfd(8888);
+    Epoll epoll(sockfd);
+    while(1) {
+        epoll.active_fd();
+        epoll.deal();
+    }
 }

@@ -14,6 +14,8 @@
 
 class Epoll {
 public:
+    typedef function<>
+
     Epoll(Socket fd);
     ~Epoll();
     void active_fd();
@@ -27,5 +29,6 @@ private:
     struct epoll_event ev, events[EPOLL_MAX];
     int fd_num; //活跃的文件描述符数量
     Socket sock_fd;
+    char pack[1000];
 };
 #endif

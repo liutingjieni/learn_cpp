@@ -43,7 +43,7 @@ void Epoll::deal()
             epoll_add_(sock_fd.get_clifd());
         }
         else if(events[i].events & EPOLLIN) {
-            
+            recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);    
         }
     }
 }
