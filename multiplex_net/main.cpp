@@ -6,14 +6,19 @@
  ************************************************************************/
 
 #include <iostream>
-#include "socket.h"
 #include "epoll.h"
 using namespace std;
+
+void onmessage(void)
+{
+    printf("llala\n");
+}
 
 int main()
 {
     Socket sockfd(8888);
     Epoll epoll(sockfd);
+    epoll.set_mess_callback(bind(onmessage));
     while(1) {
         epoll.active_fd();
         epoll.deal();

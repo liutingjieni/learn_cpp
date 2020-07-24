@@ -44,6 +44,7 @@ void Epoll::deal()
         }
         else if(events[i].events & EPOLLIN) {
             recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);    
+            mess_callback_();
         }
     }
 }

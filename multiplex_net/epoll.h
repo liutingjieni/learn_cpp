@@ -11,13 +11,13 @@
 #define EPOLL_MAX 100000
 #define LISTENAMX 1000
 #include <sys/epoll.h> 
-
+#include <functional>
 class Epoll {
 public:
-    typedef function<>
+    typedef std::function<void(void)> mess_callback; 
 
     Epoll(Socket fd);
-    ~Epoll();
+    ~Epoll() {  }
     void active_fd();
     void deal();
 
@@ -30,5 +30,11 @@ private:
     int fd_num; //活跃的文件描述符数量
     Socket sock_fd;
     char pack[1000];
+    mess_callback mess_callback_;
+
+public:
+    void set_mess_callback(mess_callback  cb) {
+        mess_callback_ = cb;
+    }
 };
 #endif
