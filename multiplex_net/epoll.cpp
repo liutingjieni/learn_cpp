@@ -5,11 +5,7 @@
 	> Created Time: 2020年07月17日 星期五 11时35分18秒
  ************************************************************************/
 
-#include <iostream>
-#include <sys/epoll.h>
-
 #include "epoll.h"
-using namespace std;
 
 Epoll::Epoll(Socket fd) : sock_fd(fd)
 {
@@ -41,11 +37,10 @@ void Epoll::deal()
             sock_fd.accept_();
             fd_read(sock_fd.get_clifd());
             epoll_add_(sock_fd.get_clifd());
-
         }
         else if(events[i].events & EPOLLIN) {
             recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);    
-            mess_callback_();
+            threadpool.push_back(mess_callback_);
         }
     }
 }

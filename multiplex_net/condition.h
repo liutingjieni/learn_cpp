@@ -5,10 +5,6 @@
 	> Created Time: 2020年07月27日 星期一 19时29分55秒
  ************************************************************************/
 
-#include <iostream>
-#include "mutex.h"
-#include <pthread.h>
-using namespace std;
 
 class Condition {
 public:

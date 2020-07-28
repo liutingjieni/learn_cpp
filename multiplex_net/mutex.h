@@ -5,13 +5,15 @@
 	> Created Time: 2020年07月24日 星期五 16时44分27秒
  ************************************************************************/
 
-#include <iostream>
 #include <pthread.h>
-using namespace std;
 
 class MutexLock {
 public:
     MutexLock() {pthread_mutex_init(&mutex_, NULL); }
+    MutexLock(const MutexLock& mutex) 
+    {
+        mutex_ = mutex.mutex_;
+    }
     ~MutexLock() {pthread_mutex_destroy(&mutex_); }
     void lock() 
     {
