@@ -7,8 +7,8 @@
 
 #include <iostream>
 #include <list>
+#include "condition.h"
 
-#include "mutex.h"
 using namespace std;
 
 template <typename T>
@@ -17,7 +17,7 @@ public:
     Threadpool(int);
     ~Threadpool();
     bool push_back(T*request);
-    static void *worker;
+    static void *worker(void *arg);
     void run();
 
 private:
@@ -61,16 +61,19 @@ Threadpool<T>::~Threadpool()
 template <typename T>
 bool Threadpool<T>::push_back(T *request)
 {
+    
+    {
     MutexLockGuard lock(mutex);
     if (workqueue.size() > max_requests) 
         return false;
     workqueue.push_back(request);
+    }
     cond_.notify();
     return true;
 }
 
 template <typename T>
-void *Threadpool::worker(void *arg) 
+void *Threadpool<T>::worker(void *arg) 
 {
     Threadpool* pool = (Threadpool *)arg;
     pool->run();
