@@ -12,6 +12,10 @@
 #define EPOLL_MAX 100000
 #define LISTENAMX 1000
 #include <sys/epoll.h> 
+#include <unistd.h>
+
+char pack[1000];
+
 class Epoll {
 public:
     Epoll(Socket fd);
@@ -27,7 +31,6 @@ private:
     struct epoll_event ev, events[EPOLL_MAX];
     int fd_num; //活跃的文件描述符数量
     Socket sock_fd;
-    char pack[1000];
     callback mess_callback_;
     Threadpool threadpool;
 
@@ -70,7 +73,11 @@ void Epoll::deal()
             epoll_add_(sock_fd.get_clifd());
         }
         else if(events[i].events & EPOLLIN) {
-            recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);    
+            int ret = recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);    
+            if (ret <= 0) {
+                close(events[i].data.fd);
+                events[i].data.fd = -1;
+            }
             threadpool.push_back(mess_callback_);
         }
     }

@@ -9,9 +9,11 @@
 #include "epoll.h"
 using namespace std;
 
+
+
 void onmessage(void)
 {
-    printf("llala\n");
+    printf("%s\n ", pack);
 }
 
 int main()
