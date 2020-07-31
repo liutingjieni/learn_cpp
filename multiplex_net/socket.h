@@ -16,22 +16,34 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <map>
+#include <utility>
+
+class Conn {
+public:
+    Conn () {  }
+    Conn(const Conn& t) 
+        : fd(t.fd), addr(t.addr) {  }
+    ~Conn() {}
+    int fd;
+    struct sockaddr_in addr;
+    static socklen_t len;
+};
+
+socklen_t Conn::len = sizeof(struct sockaddr_in);
 
 class Socket{
 public:
     Socket(int port);
     Socket(const Socket &sockfd);
     ~Socket() {  }
-    void accept_();
+    int accept_();
     void init(int);
     int get_fd() const { return sock_fd; }
-    int get_clifd() const {return conn_fd; }
-
+    Conn find(int);
 private:
     int sock_fd;
-    struct sockaddr_in cli_addr;
-    socklen_t cli_len = sizeof(struct sockaddr_in);
-    int conn_fd;
+    std::map<int, Conn> conn_list;
 };
 
 Socket::Socket(int port)
@@ -75,9 +87,16 @@ void Socket::init(int port)
     }
 }
 
-void  Socket::accept_()
+int  Socket::accept_()
 {
-    conn_fd = accept(sock_fd, (struct sockaddr *)&cli_addr, &cli_len);
+    Conn conn_t;
+    conn_t.fd = accept(sock_fd, (struct sockaddr *)&(conn_t.addr), &(conn_t.len));
+    conn_list.insert(std::make_pair(conn_t.fd, conn_t));
+    return conn_t.fd;
+}
+Conn Socket::find(int fd)
+{
+    return conn_list[fd];
 }
 
 #endif

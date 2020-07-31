@@ -8,19 +8,19 @@
 #include <iostream>
 #include "epoll.h"
 using namespace std;
+using std::placeholders::_1;
 
-
-
-void onmessage(void)
+void onmessage(const Conn& conn)
 {
     printf("%s\n ", pack);
+    send(conn.fd, &pack, sizeof(pack), 0);
 }
 
 int main()
 {
     Socket sockfd(8888);
     Epoll epoll(sockfd);
-    epoll.set_mess_callback(bind(onmessage));
+    epoll.set_mess_callback(bind(onmessage, _1));
     while(1) {
         epoll.active_fd();
         epoll.deal();

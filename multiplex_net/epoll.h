@@ -7,7 +7,6 @@
 
 #ifndef _EPOLL_H
 #define _EPOLL_H
-#include "socket.h"
 #include "threadpool.h"
 #define EPOLL_MAX 100000
 #define LISTENAMX 1000
@@ -31,12 +30,12 @@ private:
     struct epoll_event ev, events[EPOLL_MAX];
     int fd_num; //活跃的文件描述符数量
     Socket sock_fd;
-    callback mess_callback_;
+    Task  task_;
     Threadpool threadpool;
 
 public:
     void set_mess_callback(callback  cb) {
-        mess_callback_ = cb;
+        task_.callback_ = cb;
     }
 };
 
@@ -68,9 +67,9 @@ void Epoll::deal()
 {
     for (int i = 0; i < fd_num; i++) {
         if(events[i].data.fd == sock_fd.get_fd()) {
-            sock_fd.accept_();
-            fd_read(sock_fd.get_clifd());
-            epoll_add_(sock_fd.get_clifd());
+            int conn_fd = sock_fd.accept_();
+            fd_read(conn_fd);
+            epoll_add_(conn_fd);
         }
         else if(events[i].events & EPOLLIN) {
             int ret = recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);    
@@ -78,7 +77,9 @@ void Epoll::deal()
                 close(events[i].data.fd);
                 events[i].data.fd = -1;
             }
-            threadpool.push_back(mess_callback_);
+            Conn conn = sock_fd.find(events[i].data.fd);
+            task_.conn = conn;
+            threadpool.push_back(task_);
         }
     }
 }

@@ -8,13 +8,19 @@
 #include <functional>
 #include "mutex.h"
 #include "condition.h"
-typedef std::function<void(void)> callback;
+#include "socket.h"
+typedef std::function<void(const Conn&)> callback;
+
+typedef struct task {
+    callback callback_;
+    Conn conn;
+}Task;
 
 class Threadpool {
 public:
     Threadpool();
     ~Threadpool();
-    bool push_back(callback);
+    bool push_back(Task);
     static void *worker(void *arg);
     void run();
 
@@ -22,7 +28,7 @@ private:
     int numthreads;
     int max_requests;
     pthread_t *threads;
-    std::list<callback> workqueue;
+    std::list<Task> workqueue;
     MutexLock mutex;
     Condition cond_;
 };
@@ -56,14 +62,14 @@ Threadpool::~Threadpool()
     delete [] threads;
 }
 
-bool Threadpool::push_back(callback callback_)
+bool Threadpool::push_back(Task task_)
 {
     
     {
     MutexLockGuard lock(mutex);
     if (workqueue.size() > max_requests) 
         return false;
-    workqueue.push_back(callback_);
+    workqueue.push_back(task_);
     }
     cond_.notify();
     return true;
@@ -83,11 +89,11 @@ void Threadpool::run()
         while (workqueue.size() < 1) {
             cond_.wait();
         }
-        callback callback_ = workqueue.front();
+        Task task_ = workqueue.front();
         workqueue.pop_front();
         mutex.unlock();
-        if(callback_) {
-            callback_();
+        if(task_.callback_) {
+            task_.callback_(task_.conn);
         }
     }
 }

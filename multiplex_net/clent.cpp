@@ -10,9 +10,19 @@
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 #define IP "127.0.0.1"
 
 #define PORT 8888
+    char pack[1000];
+
+void *run(void *clifd)
+{
+    while(1) {
+        recv(*(int *)clifd, &pack, sizeof(pack), MSG_WAITALL);
+        printf("recv:;%s\n", pack);
+    }
+}
 
 int main()
 {
@@ -31,7 +41,8 @@ int main()
             
     }
         printf("客户端启动成功");
-    char pack[1000];
+    pthread_t tid;
+    pthread_create(&tid, NULL, run, (void *)&cli_fd);
     while(1) {
         scanf("%s", pack);
         printf("pack: %s", pack);
