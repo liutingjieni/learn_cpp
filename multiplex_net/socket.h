@@ -25,6 +25,7 @@ public:
     Conn(const Conn& t) 
         : fd(t.fd), addr(t.addr) {  }
     ~Conn() {}
+    
     int fd;
     struct sockaddr_in addr;
     static socklen_t len;
@@ -43,7 +44,7 @@ public:
     Conn find(int);
 private:
     int sock_fd;
-    std::map<int, Conn> conn_list;
+    std::map<int, Conn> conn_list;  //保存所有的连接信息
 };
 
 Socket::Socket(int port)
