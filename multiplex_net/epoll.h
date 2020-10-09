@@ -12,8 +12,19 @@
 #define LISTENAMX 1000
 #include <sys/epoll.h> 
 #include <unistd.h>
+#include <fcntl.h>
 
-char pack[1000];
+char pack[10];
+
+int setnonblocking(int fd)
+{
+    int old_option = fcntl(fd, F_GETFL);
+    int new_option = old_option | O_NONBLOCK;
+    fcntl(fd, F_SETFL, new_option);
+    return old_option;
+
+
+}
 
 class Epoll {
 public:
@@ -47,6 +58,7 @@ Epoll::Epoll(Socket fd) : sock_fd(fd)
     epoll_add_(sock_fd.get_fd());
 }
 
+
 void Epoll::fd_read(int fd)
 {
     ev.data.fd = fd;
@@ -56,6 +68,7 @@ void Epoll::fd_read(int fd)
 void Epoll::epoll_add_(int fd)
 {
     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev);
+    setnonblocking(fd);
 }
 
 void Epoll::active_fd()
@@ -72,11 +85,11 @@ void Epoll::deal()
             epoll_add_(conn_fd);
         }
         else if(events[i].events & EPOLLIN) {
-            int ret = recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);    
+            int ret = recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);   
             if (ret <= 0) {
                 close(events[i].data.fd);
                 events[i].data.fd = -1;
-                conn_list.earse(events[i].data.fd);
+                //conn_list.earse(events[i].data.fd);
                 
             }
             //在conn_list(所有连接map)找到所对应根据key(fd) 
