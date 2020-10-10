@@ -63,24 +63,26 @@ public:
         assert(writable_bytes() >= len); //确保分配空间或移动空间成功, 能够放入待放的数据
     }
 
-    //返回writable
+    //返回writable的首地址
     char *begin_write()
     {
         return begin() + write_index_;
     }
 
+    //const版本
     const char *begin_write() const
     {
         return begin() + write_index_;
     }
 
+    //移动write_index_
     void has_written(size_t len)
     {
         assert(len <= writable_bytes());
         write_index_ += len;
     }
 
-
+    //收到数据包追加在buffer后面
     void append(const char *data, size_t len)
     {
         ensure_writable_bytes(len);
