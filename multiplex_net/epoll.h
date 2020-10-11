@@ -89,7 +89,7 @@ void Epoll::deal()
             if (ret <= 0) {
                 close(events[i].data.fd);
                 events[i].data.fd = -1;
-                //conn_list.earse(events[i].data.fd);
+                conn_list.earse(events[i].data.fd);
                 
             }
             //在conn_list(所有连接map)找到所对应根据key(fd) 
