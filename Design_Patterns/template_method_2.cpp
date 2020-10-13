@@ -20,6 +20,7 @@ public:
         }
         step5();
     }
+    virtual ~Library() {  }
 
 protected:
     void step1()
@@ -35,16 +36,29 @@ protected:
     {
         //...
     }
-    virtual ~Library() {  }
     virtual bool step2() = 0;
     virtual void step4() = 0;
 
 };
 
+class Application  : public Library {
+protected:
+    virtual bool step2()
+    {
+        //...
+    }
+
+    virtual void step4()
+    {
+        //...
+    }
+};
+
 int main()
 {
-    Library *lib;
-    
+    Library *lib = new Application();
+    lib->run();
+    delete lib;
 
 }
 

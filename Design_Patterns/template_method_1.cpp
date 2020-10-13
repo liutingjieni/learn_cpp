@@ -21,21 +21,35 @@ public:
     {
         //...
     }
-}
+};
+
+class Applicaton {
+public: 
+    bool step2() 
+    {
+        //...
+    }
+    void step4()
+    {
+        //....
+    }
+};
+
 
 int main()
 {
-    Library *lib;
+    Library lib;
+    Applicaton app;
     
-    step1();
-    if (step2()) {
-        step3();
+    lib.step1();
+    if (app.step2()) {
+        lib.step3();
     }
 
     for (int i = 0; i < 4; i++) {
-        step4();
+        app.step4();
     }
-    step5();
+    lib.step5();
 
 }
 
