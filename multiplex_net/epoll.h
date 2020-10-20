@@ -13,7 +13,7 @@
 #include <sys/epoll.h> 
 #include <unistd.h>
 #include <fcntl.h>
-
+#include "timer.h"
 char pack[100];
 
 int setnonblocking(int fd)
@@ -33,6 +33,7 @@ public:
 
 private:
     void epoll_add_(int);
+    void epoll_del_(int);
     void fd_read(int fd);
     
     int epoll_fd;
@@ -41,7 +42,8 @@ private:
     Socket sock_fd;
     Task  task_;
     Threadpool threadpool;
-
+    Timer timer;
+    
 public:
     void set_mess_callback(callback  cb) {
         task_.callback_ = cb;
@@ -54,6 +56,9 @@ Epoll::Epoll(Socket fd) : sock_fd(fd)
     epoll_fd = epoll_create(EPOLL_MAX);
     fd_read(sock_fd.get_fd());
     epoll_add_(sock_fd.get_fd());
+    fd_read(timer.get_fd());
+    epoll_add_(timer.get_fd());
+    printf("epoll init end\n");
 }
 
 
@@ -69,6 +74,11 @@ void Epoll::epoll_add_(int fd)
     setnonblocking(fd);  
 }
 
+void Epoll::epoll_del_(int fd)
+{
+    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &ev);
+}
+
 void Epoll::active_fd()
 {
     fd_num = epoll_wait(epoll_fd, events, EPOLL_MAX, 1000);
@@ -78,11 +88,16 @@ void Epoll::deal()
 {
     for (int i = 0; i < fd_num; i++) {
         if(events[i].data.fd == sock_fd.get_fd()) {
-            sleep(100);
-            printf("sleep after\n");
             int conn_fd = sock_fd.accept_();
             fd_read(conn_fd);
             epoll_add_(conn_fd);
+        }
+        // 定时器
+        else if (events[i].data.fd == timer.get_fd()) {
+            epoll_del_(timer.get_fd());
+            timer.reset(); //定时器重新设置时间
+            epoll_add_(timer.get_fd());
+
         }
         else if(events[i].events & EPOLLIN) {
             int ret = recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);   
