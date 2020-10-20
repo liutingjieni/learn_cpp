@@ -9,11 +9,11 @@
 #include "mutex.h"
 #include "condition.h"
 #include "socket.h"
-typedef std::function<void(const Conn&)> callback;
+typedef std::function<void(std::shared_ptr<Conn>)> callback;
 
 typedef struct task {
     callback callback_;
-    Conn conn;
+    std::shared_ptr<Conn> conn;
 }Task;
 
 class Threadpool {

@@ -10,10 +10,10 @@
 using namespace std;
 using std::placeholders::_1;
 
-void onmessage(const Conn& conn)
+void onmessage(shared_ptr<Conn> conn)
 {
     printf("%s\n ", pack);
-    send(conn.fd, &pack, strlen(pack), 0);
+    send(conn->fd, &pack, strlen(pack), 0);
 }
 
 int main()

@@ -18,27 +18,27 @@ public:
     tw_timer(int rot, int ts)
     : next(NULL), prev(NULL), rotation(rot), time_slot(ts) {  }
 
-    int rotation;
-    int time_slot;
-    void (*cb_func)(Conn *);
-    Conn* user_data;
-    tw_timer* next;
-    tw_timer* prev;
+    int rotation;       //记录定时器在时间轮转多少圈后生效
+    int time_slot;      //记录定时器属于时间轮上哪个槽
+    void (*cb_func)(Conn *); //定时器回调函数
+    Conn* user_data;    //客户数据
+    tw_timer* next;     //下一个定时器
+    tw_timer* prev;     //上一个定时器
 };
-
 
 class time_wheel {
 public:
     time_wheel() : cur_slot(0)
     {
         for(int i = 0; i < N; i++) {
-            slots[i] = NULL;
+            slots[i] = NULL; //初始化所有槽
         }
     }
     ~time_wheel()
     {
+        //销毁所有槽上所连的链表上的定时器
         for (int i = 0; i < N; i++) {
-            tw_timer* tmp = slots[i];
+            tw_timer* tmp = slots[i]; 
             while (tmp) {
                 slots[i] = tmp->next;
                 delete tmp;
@@ -47,46 +47,57 @@ public:
         }
     }
 
-    tw_timer* add_timer(int timeout);
+    tw_timer* add_timer(shared_ptr<Conn>, int timeout); 
     void del_timer(tw_timer* timer);
     void tick();
+    void update_timer(shared_ptr<Conn>, int timeout);
 
 private:
-    static const int N = 60;
-    static const int SI = 1;
-    tw_timer* slots[N];
-    int cur_slot;
+    static const int N = 60; //时间轮上槽的数目
+    static const int SI = 1; //每一秒时间轮转一次, 即槽间隔为1S
+    tw_timer* slots[N];      //
+    int cur_slot;            //时间轮的当前槽
+    map<shared_ptr<Conn>, tw_timer *> get_timer;
 };
 
-tw_timer* time_wheel::add_timer(int timeout)
+//根据定时值timeout创建一个定时器, 并把它插入到合适的槽中
+tw_timer* time_wheel::add_timer(shared_ptr<Conn> conn, int timeout)
 {
     if (timeout < 0) {
         return NULL;
     } 
     int ticks = 0;
+    //下面根据待插入定时器的超时值计算它将在时间轮转动多少个滴答后被触发,并将滴答数存储与变量ticks
+    //如果待插入定时器的超时值小于时间轮的槽间隔SI, 则将ticks向上折合为1
+    //否则就将ticks向下折合为timeout/SI
     if (timeout < SI) {
         ticks = 1;
     } 
     else {
         ticks = timeout / SI;
     }
-    int rotation = ticks / N;
-    int ts = (cur_slot + (ticks % N)) % N;
-    tw_timer* timer = new tw_timer(rotation, ts);
 
-    if (!slots[ts]) {
+    int rotation = ticks / N; // 计算待插入的定时器在时间轮转动多少圈后被触发
+    // 计算待插入的定时器应该插入哪个槽中
+    int ts = (cur_slot + (ticks % N)) % N; 
+    // 创建新的定时器, 它在时间轮转动rotation后被触发, 且位于ts槽中
+    tw_timer* timer = new tw_timer(rotation, ts);
+    
+    if (!slots[ts]) { //如果该槽中无任何定时器
         cout << "add timer, rotation is" << rotation << 
         ", ts is " << ts << ", cur_slot is" << cur_slot << endl;
         slots[ts] = timer;
     }
-    else {
+    else { //头插法将新的定时器插到槽中
         timer->next = slots[ts];
         slots[ts]->prev = timer;
         slots[ts] = timer;
     }
+    get_timer[conn] = timer;
     return timer;
 }
 
+// 删除目标定时器timer
 void time_wheel::del_timer(tw_timer* timer)
 {
     if (!timer) {
@@ -94,7 +105,8 @@ void time_wheel::del_timer(tw_timer* timer)
     }
     int ts = timer->time_slot;
 
-    if (timer == slots[ts]) {
+    //如果要删除的定时器为头结点
+    if (timer == slots[ts]) { 
         slots[ts] = slots[ts]->next;
         if (slots[ts]) {
             slots[ts]->prev = NULL;
@@ -110,19 +122,30 @@ void time_wheel::del_timer(tw_timer* timer)
     }
 }
 
+void time_wheel::update_timer(shared_ptr<Conn> conn, int timeout)
+{
+    del_timer(get_timer[conn]);
+    add_timer(conn, timeout);
+}
+//SI时间到后, 调用该函数, 时间轮向前滚动一个槽的间隔
 void time_wheel::tick()
 {
+    //取得时间轮上当前槽的头结点
     tw_timer* tmp = slots[cur_slot];
     cout << "current slot is " << cur_slot << endl;
-    while (tmp) {
+
+    while (tmp) { //开始遍历本条链表
         cout << "tick the timer once" << endl;
+        // 如果定时器的rotation > 0, 则它在这一轮连接中不起作用
         if (tmp->rotation > 0) {
             tmp->rotation--;
             tmp = tmp->next;
         }
+        //否则, 说明定时器已经到期, 于是执行定时任务, 然后删除该定时器
         else {
             tmp->cb_func(tmp->user_data);
-            if (tmp == slots[cur_slot]) {
+            //到期的是头结点
+            if (tmp == slots[cur_slot]) { 
                 cout << "delete header in cur_slot" << endl;
                 slots[cur_slot] = tmp->next;
                 delete tmp;
@@ -143,5 +166,6 @@ void time_wheel::tick()
         }
 
     }
+    //更新时间轮的当前槽, 以反映时间轮的滚动
     cur_slot = ++cur_slot % N;
 }

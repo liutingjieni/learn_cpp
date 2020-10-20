@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "timer.h"
+#include "timer_wheel.h"
 char pack[100];
 
 int setnonblocking(int fd)
@@ -43,6 +44,7 @@ private:
     Task  task_;
     Threadpool threadpool;
     Timer timer;
+    time_wheel wheel;
     
 public:
     void set_mess_callback(callback  cb) {
@@ -91,9 +93,11 @@ void Epoll::deal()
             int conn_fd = sock_fd.accept_();
             fd_read(conn_fd);
             epoll_add_(conn_fd);
+            wheel.add_timer(sock_fd.find(conn_fd), 60);
         }
         // 定时器
         else if (events[i].data.fd == timer.get_fd()) {
+            wheel.tick();
             epoll_del_(timer.get_fd());
             timer.reset(); //定时器重新设置时间
             epoll_add_(timer.get_fd());
@@ -107,8 +111,9 @@ void Epoll::deal()
                 //conn_list.earse(events[i].data.fd);
                 
             }
+            shared_ptr<Conn> conn = sock_fd.find(events[i].data.fd);
+            wheel.update_timer(conn, 60);
             //在conn_list(所有连接map)找到所对应根据key(fd) 
-            Conn conn = sock_fd.find(events[i].data.fd);
             task_.conn = conn;
             threadpool.push_back(task_);
         }

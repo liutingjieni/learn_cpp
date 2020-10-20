@@ -18,8 +18,8 @@
 #include <arpa/inet.h>
 #include <map>
 #include <utility>
+#include <memory>
 #include "conn.h"
-
 class Socket{
 public:
     Socket(int port);
@@ -28,10 +28,10 @@ public:
     int accept_();
     void init(int);
     int get_fd() const { return sock_fd; }
-    Conn find(int);
+    std::shared_ptr<Conn> find(int);
 private:
     int sock_fd;
-    std::map<int, Conn> conn_list;  //保存所有的连接信息
+    std::map<int, std::shared_ptr<Conn>> conn_list;  //保存所有的连接信息
 };
 
 Socket::Socket(int port)
@@ -77,12 +77,12 @@ void Socket::init(int port)
 
 int  Socket::accept_()
 {
-    Conn conn_t;
-    conn_t.fd = accept(sock_fd, (struct sockaddr *)&(conn_t.addr), &(conn_t.len));
-    conn_list.insert(std::make_pair(conn_t.fd, conn_t));
-    return conn_t.fd;
+    std::shared_ptr<Conn> conn_t(new Conn);
+    conn_t->fd = accept(sock_fd, (struct sockaddr *)&(conn_t->addr), &(conn_t->len));
+    conn_list.insert(std::make_pair(conn_t->fd, conn_t));
+    return conn_t->fd;
 }
-Conn Socket::find(int fd)
+std::shared_ptr<Conn> Socket::find(int fd)
 {
     return conn_list[fd];
 }
