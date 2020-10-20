@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-char pack[10];
+char pack[100];
 
 int setnonblocking(int fd)
 {
@@ -22,8 +22,6 @@ int setnonblocking(int fd)
     int new_option = old_option | O_NONBLOCK;
     fcntl(fd, F_SETFL, new_option);
     return old_option;
-
-
 }
 
 class Epoll {
@@ -68,7 +66,7 @@ void Epoll::fd_read(int fd)
 void Epoll::epoll_add_(int fd)
 {
     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev);
-    setnonblocking(fd);
+    setnonblocking(fd);  
 }
 
 void Epoll::active_fd()
@@ -80,6 +78,8 @@ void Epoll::deal()
 {
     for (int i = 0; i < fd_num; i++) {
         if(events[i].data.fd == sock_fd.get_fd()) {
+            sleep(100);
+            printf("sleep after\n");
             int conn_fd = sock_fd.accept_();
             fd_read(conn_fd);
             epoll_add_(conn_fd);
@@ -89,7 +89,7 @@ void Epoll::deal()
             if (ret <= 0) {
                 close(events[i].data.fd);
                 events[i].data.fd = -1;
-                conn_list.earse(events[i].data.fd);
+                //conn_list.earse(events[i].data.fd);
                 
             }
             //在conn_list(所有连接map)找到所对应根据key(fd) 

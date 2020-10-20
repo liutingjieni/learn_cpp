@@ -18,20 +18,7 @@
 #include <arpa/inet.h>
 #include <map>
 #include <utility>
-
-class Conn {
-public:
-    Conn () {  }
-    Conn(const Conn& t) 
-        : fd(t.fd), addr(t.addr) {  }
-    ~Conn() {}
-    
-    int fd;
-    struct sockaddr_in addr;
-    static socklen_t len;
-};
-
-socklen_t Conn::len = sizeof(struct sockaddr_in);
+#include "conn.h"
 
 class Socket{
 public:

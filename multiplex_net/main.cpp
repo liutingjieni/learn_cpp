@@ -13,7 +13,7 @@ using std::placeholders::_1;
 void onmessage(const Conn& conn)
 {
     printf("%s\n ", pack);
-    send(conn.fd, &pack, sizeof(pack), 0);
+    send(conn.fd, &pack, strlen(pack), 0);
 }
 
 int main()
