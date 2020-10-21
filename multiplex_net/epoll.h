@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include "timer.h"
 #include "timer_wheel.h"
+using std::placeholders::_1;
 char pack[100];
 
 int setnonblocking(int fd)
@@ -23,6 +24,11 @@ int setnonblocking(int fd)
     int new_option = old_option | O_NONBLOCK;
     fcntl(fd, F_SETFL, new_option);
     return old_option;
+}
+
+void ontime(std::shared_ptr<Conn> conn)
+{
+    printf("on time\n");
 }
 
 class Epoll {
@@ -41,7 +47,7 @@ private:
     struct epoll_event ev, events[EPOLL_MAX];
     int fd_num; //活跃的文件描述符数量
     Socket sock_fd;
-    Task  task_;
+    Task task_; //task分配空间, 传给线程池的队列
     Threadpool threadpool;
     Timer timer;
     time_wheel wheel;
@@ -60,7 +66,6 @@ Epoll::Epoll(Socket fd) : sock_fd(fd)
     epoll_add_(sock_fd.get_fd());
     fd_read(timer.get_fd());
     epoll_add_(timer.get_fd());
-    printf("epoll init end\n");
 }
 
 
@@ -93,26 +98,36 @@ void Epoll::deal()
             int conn_fd = sock_fd.accept_();
             fd_read(conn_fd);
             epoll_add_(conn_fd);
-            wheel.add_timer(sock_fd.find(conn_fd), 60);
+
+            //在时间轮上为新的连接加tw_timer
+            tw_timer *tw = wheel.add_timer(sock_fd.find(conn_fd), 60);
+            //为每个到时的连接添加回调函数
+            tw->set_time_callback(bind(ontime, _1));
         }
         // 定时器
-        else if (events[i].data.fd == timer.get_fd()) {
-            wheel.tick();
-            epoll_del_(timer.get_fd());
-            timer.reset(); //定时器重新设置时间
-            epoll_add_(timer.get_fd());
-
-        }
         else if(events[i].events & EPOLLIN) {
+            if (events[i].data.fd == timer.get_fd()) {
+                wheel.tick(); //心跳事件到达
+                
+                epoll_del_(timer.get_fd());
+                timer.reset(); //定时器重新设置时间
+                epoll_add_(timer.get_fd());
+
+            }
+            cout << "*******" << endl;
             int ret = recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);   
             if (ret <= 0) {
                 close(events[i].data.fd);
                 events[i].data.fd = -1;
-                //conn_list.earse(events[i].data.fd);
-                
+                //conn_list.earse(events[i].data.fd);    
             }
+            //根据到达连接的fd信息, 找到对应的conn
+            cout << "recv_fd " << events[i].data.fd << endl;
             shared_ptr<Conn> conn = sock_fd.find(events[i].data.fd);
+            cout << "recv->fd " << conn->fd << endl;
+            //根据conn的信息在map中找到对应tw_timer, 然后更新他在时间轮上的位置
             wheel.update_timer(conn, 60);
+
             //在conn_list(所有连接map)找到所对应根据key(fd) 
             task_.conn = conn;
             threadpool.push_back(task_);

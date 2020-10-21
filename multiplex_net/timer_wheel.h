@@ -8,22 +8,31 @@
 #include <iostream>
 #include <time.h>
 #include <netinet/in.h>
+#include <functional>
 #include "conn.h"
 using namespace::std;
 
 #define BUFFER_SIZE 64
+typedef std::function<void(std::shared_ptr<Conn>)> time_callback;
 
 class tw_timer {
 public:
-    tw_timer(int rot, int ts)
-    : next(NULL), prev(NULL), rotation(rot), time_slot(ts) {  }
+    tw_timer(int rot, int ts, std::shared_ptr<Conn> conn)
+    : next(NULL), prev(NULL), rotation(rot), 
+      time_slot(ts), conn_(conn) {  }
+
+    void set_time_callback(time_callback cb)
+    {
+        time_callback_ = cb;
+    }
 
     int rotation;       //记录定时器在时间轮转多少圈后生效
     int time_slot;      //记录定时器属于时间轮上哪个槽
-    void (*cb_func)(Conn *); //定时器回调函数
-    Conn* user_data;    //客户数据
+    time_callback time_callback_; //定时器回调函数
+    shared_ptr<Conn> conn_;    //客户数据
     tw_timer* next;     //下一个定时器
     tw_timer* prev;     //上一个定时器
+
 };
 
 class time_wheel {
@@ -81,7 +90,7 @@ tw_timer* time_wheel::add_timer(shared_ptr<Conn> conn, int timeout)
     // 计算待插入的定时器应该插入哪个槽中
     int ts = (cur_slot + (ticks % N)) % N; 
     // 创建新的定时器, 它在时间轮转动rotation后被触发, 且位于ts槽中
-    tw_timer* timer = new tw_timer(rotation, ts);
+    tw_timer* timer = new tw_timer(rotation, ts, conn);
     
     if (!slots[ts]) { //如果该槽中无任何定时器
         cout << "add timer, rotation is" << rotation << 
@@ -93,6 +102,7 @@ tw_timer* time_wheel::add_timer(shared_ptr<Conn> conn, int timeout)
         slots[ts]->prev = timer;
         slots[ts] = timer;
     }
+
     get_timer[conn] = timer;
     return timer;
 }
@@ -127,6 +137,8 @@ void time_wheel::update_timer(shared_ptr<Conn> conn, int timeout)
     del_timer(get_timer[conn]);
     add_timer(conn, timeout);
 }
+
+
 //SI时间到后, 调用该函数, 时间轮向前滚动一个槽的间隔
 void time_wheel::tick()
 {
@@ -143,7 +155,7 @@ void time_wheel::tick()
         }
         //否则, 说明定时器已经到期, 于是执行定时任务, 然后删除该定时器
         else {
-            tmp->cb_func(tmp->user_data);
+            tmp->time_callback_(tmp->conn_);
             //到期的是头结点
             if (tmp == slots[cur_slot]) { 
                 cout << "delete header in cur_slot" << endl;

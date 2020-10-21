@@ -19,12 +19,13 @@
 #define IP "127.0.0.1"
 
 #define PORT 8888
-    char pack[1000];
+    char pack[100];
 
 void *run(void *clifd)
 {
     while(1) {
         recv(*(int *)clifd, &pack, sizeof(pack), MSG_WAITALL);
+        printf("%s\n", pack);
     }
 }
 
@@ -38,14 +39,14 @@ int main()
     serv_addr.sin_port = htons(PORT);
     serv_addr.sin_addr.s_addr = inet_addr(IP);
         
-    struct timeval timeout;
+    /*struct timeval timeout;
     timeout.tv_sec = time(NULL);
     timeout.tv_usec = 0;
     socklen_t len = sizeof(timeout);
     int ret = setsockopt(cli_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, len);
     assert(ret!=-1);
-
-    ret = connect(cli_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+*/
+    int ret = connect(cli_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
     if (ret == -1)    
     {
         perror("connect 出现问题");
