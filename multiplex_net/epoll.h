@@ -94,8 +94,10 @@ void Epoll::active_fd()
 void Epoll::deal()
 {
     for (int i = 0; i < fd_num; i++) {
+    cout << sock_fd.get_fd() << " " << events[i].data.fd <<" " << timer.get_fd() << endl;
         if(events[i].data.fd == sock_fd.get_fd()) {
             int conn_fd = sock_fd.accept_();
+            cout << conn_fd << endl;
             fd_read(conn_fd);
             epoll_add_(conn_fd);
 
@@ -112,25 +114,28 @@ void Epoll::deal()
                 epoll_del_(timer.get_fd());
                 timer.reset(); //定时器重新设置时间
                 epoll_add_(timer.get_fd());
+                continue;
 
-            }
-            cout << "*******" << endl;
-            int ret = recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);   
-            if (ret <= 0) {
-                close(events[i].data.fd);
-                events[i].data.fd = -1;
-                //conn_list.earse(events[i].data.fd);    
-            }
-            //根据到达连接的fd信息, 找到对应的conn
-            cout << "recv_fd " << events[i].data.fd << endl;
-            shared_ptr<Conn> conn = sock_fd.find(events[i].data.fd);
-            cout << "recv->fd " << conn->fd << endl;
-            //根据conn的信息在map中找到对应tw_timer, 然后更新他在时间轮上的位置
-            wheel.update_timer(conn, 60);
+            } 
+            else {
+                cout << "******* %d" << events[i].data.fd <<endl;
+                int ret = recv(events[i].data.fd, &pack, sizeof(pack) ,MSG_WAITALL);   
+                if (ret <= 0) {  //bug
+                    close(events[i].data.fd);
+                    events[i].data.fd = -1;
+                    //conn_list.earse(events[i].data.fd);    
+                }
+                //根据到达连接的fd信息, 找到对应的conn
+                cout << "recv_fd " << events[i].data.fd << endl;
+                shared_ptr<Conn> conn = sock_fd.find(events[i].data.fd);
+                cout << "recv->fd " << conn->fd << endl;
+                //根据conn的信息在map中找到对应tw_timer, 然后更新他在时间轮上的位置
+                wheel.update_timer(conn, 60);
 
-            //在conn_list(所有连接map)找到所对应根据key(fd) 
-            task_.conn = conn;
-            threadpool.push_back(task_);
+                //在conn_list(所有连接map)找到所对应根据key(fd) 
+                task_.conn = conn;
+                threadpool.push_back(task_);
+            }
         }
     }
 }
