@@ -13,11 +13,11 @@
 using namespace::std;
 
 #define BUFFER_SIZE 64
-typedef std::function<void(std::shared_ptr<Conn>)> time_callback;
+typedef std::function<void(std::shared_ptr<conn>)> time_callback;
 
 class tw_timer {
 public:
-    tw_timer(int rot, int ts, std::shared_ptr<Conn> conn)
+    tw_timer(int rot, int ts, std::shared_ptr<conn> conn)
     : next(NULL), prev(NULL), rotation(rot), 
       time_slot(ts), conn_(conn) {  }
 
@@ -29,7 +29,7 @@ public:
     int rotation;       //记录定时器在时间轮转多少圈后生效
     int time_slot;      //记录定时器属于时间轮上哪个槽
     time_callback time_callback_; //定时器回调函数
-    shared_ptr<Conn> conn_;    //客户数据
+    shared_ptr<conn> conn_;    //客户数据
     tw_timer* next;     //下一个定时器
     tw_timer* prev;     //上一个定时器
 
@@ -56,22 +56,22 @@ public:
         }
     }
 
-    tw_timer* add_timer(shared_ptr<Conn>, int timeout); 
+    tw_timer* add_timer(shared_ptr<conn>, int timeout); 
     tw_timer* reset_timer(tw_timer* , int ); 
     tw_timer* cur_del_timer(tw_timer* timer);
     void tick();
-    void update_timer(shared_ptr<Conn>, int timeout);
+    void update_timer(shared_ptr<conn>, int timeout);
 
 private:
     static const int N = 60; //时间轮上槽的数目
     static const int SI = 1; //每一秒时间轮转一次, 即槽间隔为1S
     tw_timer* slots[N];      //
     int cur_slot;            //时间轮的当前槽
-    map<shared_ptr<Conn>, tw_timer *> get_timer;
+    map<shared_ptr<conn>, tw_timer *> get_timer;
 };
 
 //根据定时值timeout创建一个定时器, 并把它插入到合适的槽中
-tw_timer* time_wheel::add_timer(shared_ptr<Conn> conn, int timeout)
+tw_timer* time_wheel::add_timer(shared_ptr<conn> conn, int timeout)
 {
     if (timeout < 0) {
         return NULL;
@@ -168,7 +168,7 @@ tw_timer* time_wheel::reset_timer(tw_timer *timer, int timeout)
     
 }
 
-void time_wheel::update_timer(shared_ptr<Conn> conn, int timeout)
+void time_wheel::update_timer(shared_ptr<conn> conn, int timeout)
 {
     tw_timer* tw(cur_del_timer(get_timer[conn]));
     reset_timer(tw, timeout);
@@ -191,10 +191,7 @@ void time_wheel::tick()
         }
         //否则, 说明定时器已经到期, 于是执行定时任务, 然后删除该定时器
         else {
-            cout << "time_callback" << endl;
-            cout << tmp->conn_->fd << endl;;
             tmp->time_callback_(tmp->conn_);
-            cout << "time_callback" << endl;
             //到期的是头结点
             if (tmp == slots[cur_slot]) { 
                 cout << "delete header in cur_slot" << endl;

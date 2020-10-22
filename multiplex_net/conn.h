@@ -8,38 +8,37 @@
 #ifndef _CONN_H
 #define _CONN_H
 #include "buffer.h"
+
 //保存客户端
-class Conn {
+
+//每个连接对应一个conn
+class conn {
 public:
-    Conn () {  }
-    Conn(const Conn& t) 
-        : fd(t.fd), addr(t.addr) {  }
-    ~Conn() {}
-    
+    conn() : buffer_(new buffer) {  }
+    int read();
+    int get_fd()
+    {
+        return fd;
+    }
+private:
     int fd;
     struct sockaddr_in addr;
     static socklen_t len;
-};
-socklen_t Conn::len = sizeof(struct sockaddr_in);
-
-class connector {
-public:
-    connector() : conn_(new Conn), buffer_(new buffer) {  }
-    int read(int fd);
-    int connfd()
-    {
-        return conn_->fd;
-    }
-private:
-    std::shared_ptr<Conn> conn_;
     std::shared_ptr<buffer> buffer_;
     int save_errno;
+    friend class Socket;
+    friend class Epoll;
 };
 
-int connector::read(int fd)
+int conn::read()
 {
     buffer_->read_fd(fd, &save_errno);
     return save_errno;
 }
+
+socklen_t conn::len = sizeof(struct sockaddr_in);
+
+//conn_list对应所有连接的信息
+std::map<int, std::shared_ptr<conn>> conn_list;  //保存所有的连接信息
 
 #endif

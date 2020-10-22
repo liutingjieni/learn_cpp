@@ -27,11 +27,11 @@ int setnonblocking(int fd)
     return old_option;
 }
 
-void ontime(std::shared_ptr<Conn> conn)
+void ontime(std::shared_ptr<conn> conn)
 {
     printf("on time\n");
-    close(conn->fd);
-    conn_list.erase(conn->fd);
+    close(conn->get_fd());
+    conn_list.erase(conn->get_fd());
 
 }
 
@@ -55,7 +55,6 @@ private:
     Threadpool threadpool;
     Timer timer;
     time_wheel wheel;
-    std::shared_ptr<connector>  connector_;
     
 public:
     void set_mess_callback(callback  cb) {
@@ -64,7 +63,7 @@ public:
 };
 
 
-Epoll::Epoll(Socket fd) : sock_fd(fd), connector_(new connector)
+Epoll::Epoll(Socket fd) : sock_fd(fd)
 {
     epoll_fd = epoll_create(EPOLL_MAX);
     fd_read(sock_fd.get_fd());
@@ -102,7 +101,6 @@ void Epoll::deal()
     for (int i = 0; i < fd_num; i++) {
         if(events[i].data.fd == sock_fd.get_fd()) {
             int conn_fd = sock_fd.accept_();
-            cout << conn_fd << endl;
             fd_read(conn_fd);
             epoll_add_(conn_fd);
 
@@ -122,22 +120,21 @@ void Epoll::deal()
             } 
             //收到包
             else {
-                int ret = connector_->read(events[i].data.fd);  
+                //根据到达连接的fd信息, 找到对应的conn
+                shared_ptr<conn> conn = conn_list[events[i].data.fd];
+                int ret = conn->read();  
                 if (ret <= 0) {  
                     cout << "ret <= 0" << endl;
                     close(events[i].data.fd);
+                    conn_list.erase(events[i].data.fd);
                     events[i].data.fd = -1;
-                    conn_list[events[i].data.fd];
                     continue;
                 }
-                //根据到达连接的fd信息, 找到对应的conn
-                shared_ptr<Conn> conn = conn_list[events[i].data.fd];
                 //根据conn的信息在map中找到对应tw_timer, 然后更新他在时间轮上的位置
                 wheel.update_timer(conn, 60);
 
                 //在conn_list(所有连接map)找到所对应根据key(fd) 
-                task_.connector_ = connector_;
-                //task_.callback_(conn);
+                task_.conn_ = conn;
                 threadpool.push_back(task_);
             }
         }
@@ -148,7 +145,7 @@ void Epoll::deal()
             cout << "EPOLLERR" << endl;
             close(events[i].data.fd);
             events[i].data.fd = -1;
-            conn_list[events[i].data.fd];
+            conn_list.erase(events[i].data.fd);
         }
     }
 }

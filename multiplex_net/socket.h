@@ -73,9 +73,9 @@ void Socket::init(int port)
     }
 }
 
-int  Socket::accept_()
+int Socket::accept_()
 {
-    std::shared_ptr<Conn> conn_t(new Conn);
+    std::shared_ptr<conn> conn_t(new conn);
     conn_t->fd = accept(sock_fd, (struct sockaddr *)&(conn_t->addr), &(conn_t->len));
     conn_list.insert(std::make_pair(conn_t->fd, conn_t));
     return conn_t->fd;

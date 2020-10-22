@@ -193,9 +193,11 @@ size_t buffer::read_fd(int fd, int *saved_errno)
 
     const int iovcnt = (writable < sizeof extrabuf) ? 2 : 1;
     const size_t n = readv(fd, vec, iovcnt);
+    cout << "*********" << endl;
     for (int i = 0; i < buffer_.size(); i++) {
         cout << buffer_[i];
     }
+    cout << endl;
     if (n < 0) {
         *saved_errno = errno;
     } else if (static_cast<size_t>(n) <= writable) {
