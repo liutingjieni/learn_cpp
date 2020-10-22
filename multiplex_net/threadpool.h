@@ -9,11 +9,11 @@
 #include "mutex.h"
 #include "condition.h"
 #include "socket.h"
-typedef std::function<void(std::shared_ptr<Conn>)> callback;
+typedef std::function<void(std::shared_ptr<connector>)> callback;
 
 typedef struct task {
     callback callback_;
-    std::shared_ptr<Conn> conn;
+    std::shared_ptr<connector> connector_;
 }Task;
 
 class Threadpool {
@@ -93,7 +93,7 @@ void Threadpool::run()
         workqueue.pop_front();
         mutex.unlock();
         if(task_.callback_) {
-            task_.callback_(task_.conn);
+            task_.callback_(task_.connector_);
         }
     }
 }

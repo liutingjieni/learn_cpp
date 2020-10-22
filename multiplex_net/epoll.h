@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include "timer.h"
 #include "timer_wheel.h"
+#include "conn.h"
 using std::placeholders::_1;
 char pack[100];
 
@@ -54,6 +55,7 @@ private:
     Threadpool threadpool;
     Timer timer;
     time_wheel wheel;
+    std::shared_ptr<connector>  connector_;
     
 public:
     void set_mess_callback(callback  cb) {
@@ -62,7 +64,7 @@ public:
 };
 
 
-Epoll::Epoll(Socket fd) : sock_fd(fd)
+Epoll::Epoll(Socket fd) : sock_fd(fd), connector_(new connector)
 {
     epoll_fd = epoll_create(EPOLL_MAX);
     fd_read(sock_fd.get_fd());
@@ -120,7 +122,7 @@ void Epoll::deal()
             } 
             //收到包
             else {
-                int ret = read(events[i].data.fd, &pack, sizeof(pack));  
+                int ret = connector_->read(events[i].data.fd);  
                 if (ret <= 0) {  
                     cout << "ret <= 0" << endl;
                     close(events[i].data.fd);
@@ -134,7 +136,7 @@ void Epoll::deal()
                 wheel.update_timer(conn, 60);
 
                 //在conn_list(所有连接map)找到所对应根据key(fd) 
-                task_.conn = conn;
+                task_.connector_ = connector_;
                 //task_.callback_(conn);
                 threadpool.push_back(task_);
             }

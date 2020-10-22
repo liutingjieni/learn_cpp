@@ -7,6 +7,7 @@
 
 #ifndef _CONN_H
 #define _CONN_H
+#include "buffer.h"
 //保存客户端
 class Conn {
 public:
@@ -20,6 +21,25 @@ public:
     static socklen_t len;
 };
 socklen_t Conn::len = sizeof(struct sockaddr_in);
-std::map<int, std::shared_ptr<Conn>> conn_list;  //保存所有的连接信息
+
+class connector {
+public:
+    connector() : conn_(new Conn), buffer_(new buffer) {  }
+    int read(int fd);
+    int connfd()
+    {
+        return conn_->fd;
+    }
+private:
+    std::shared_ptr<Conn> conn_;
+    std::shared_ptr<buffer> buffer_;
+    int save_errno;
+};
+
+int connector::read(int fd)
+{
+    buffer_->read_fd(fd, &save_errno);
+    return save_errno;
+}
 
 #endif
