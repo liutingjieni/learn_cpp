@@ -57,7 +57,8 @@ public:
     }
 
     tw_timer* add_timer(shared_ptr<Conn>, int timeout); 
-    void del_timer(tw_timer* timer);
+    tw_timer* reset_timer(tw_timer* , int ); 
+    tw_timer* cur_del_timer(tw_timer* timer);
     void tick();
     void update_timer(shared_ptr<Conn>, int timeout);
 
@@ -108,10 +109,10 @@ tw_timer* time_wheel::add_timer(shared_ptr<Conn> conn, int timeout)
 }
 
 // 删除目标定时器timer
-void time_wheel::del_timer(tw_timer* timer)
+tw_timer* time_wheel::cur_del_timer(tw_timer* timer)
 {
     if (!timer) {
-        return;
+        return nullptr;
     }
     int ts = timer->time_slot;
 
@@ -121,21 +122,56 @@ void time_wheel::del_timer(tw_timer* timer)
         if (slots[ts]) {
             slots[ts]->prev = NULL;
         }
-        delete timer;
     }
     else {
         timer->prev->next = timer->next;
         if(timer->next) {
             timer->next->prev = timer->prev;
         }
-        delete timer;
     }
+    return timer;
+}
+
+tw_timer* time_wheel::reset_timer(tw_timer *timer, int timeout)
+{
+    timer->prev = timer->next = NULL;
+    if (timeout < 0) {
+        return NULL;
+    } 
+    int ticks = 0;
+    //下面根据待插入定时器的超时值计算它将在时间轮转动多少个滴答后被触发,并将滴答数存储与变量ticks
+    //如果待插入定时器的超时值小于时间轮的槽间隔SI, 则将ticks向上折合为1
+    //否则就将ticks向下折合为timeout/SI
+    if (timeout < SI) {
+        ticks = 1;
+    } 
+    else {
+        ticks = timeout / SI;
+    }
+
+    timer->rotation = ticks / N; // 计算待插入的定时器在时间轮转动多少圈后被触发
+    // 计算待插入的定时器应该插入哪个槽中
+    timer->time_slot = (cur_slot + (ticks % N)) % N; 
+    // 创建新的定时器, 它在时间轮转动rotation后被触发, 且位于ts槽中
+    
+    if (!slots[timer->time_slot]) { //如果该槽中无任何定时器
+        cout << "add timer, rotation is" << timer->rotation << 
+        ", ts is " << timer->time_slot << ", cur_slot is" << cur_slot << endl;
+        slots[timer->time_slot] = timer;
+        timer->prev = timer->next = NULL;
+    }
+    else { //头插法将新的定时器插到槽中
+        timer->next = slots[timer->time_slot];
+        slots[timer->time_slot]->prev = timer;
+        slots[timer->time_slot] = timer;
+    }
+    
 }
 
 void time_wheel::update_timer(shared_ptr<Conn> conn, int timeout)
 {
-    del_timer(get_timer[conn]);
-    add_timer(conn, timeout);
+    tw_timer* tw(cur_del_timer(get_timer[conn]));
+    reset_timer(tw, timeout);
 }
 
 
@@ -155,7 +191,10 @@ void time_wheel::tick()
         }
         //否则, 说明定时器已经到期, 于是执行定时任务, 然后删除该定时器
         else {
+            cout << "time_callback" << endl;
+            cout << tmp->conn_->fd << endl;;
             tmp->time_callback_(tmp->conn_);
+            cout << "time_callback" << endl;
             //到期的是头结点
             if (tmp == slots[cur_slot]) { 
                 cout << "delete header in cur_slot" << endl;

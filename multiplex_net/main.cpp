@@ -12,7 +12,7 @@ using std::placeholders::_1;
 
 void onmessage(shared_ptr<Conn> conn)
 {
-    printf("%s\n ", pack);
+    printf("&&&&&&&&&&&&&%s\n ", pack);
     send(conn->fd, &pack, strlen(pack), 0);
 }
 

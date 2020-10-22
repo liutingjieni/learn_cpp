@@ -20,4 +20,6 @@ public:
     static socklen_t len;
 };
 socklen_t Conn::len = sizeof(struct sockaddr_in);
+std::map<int, std::shared_ptr<Conn>> conn_list;  //保存所有的连接信息
+
 #endif

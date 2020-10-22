@@ -24,7 +24,7 @@
 void *run(void *clifd)
 {
     while(1) {
-        recv(*(int *)clifd, &pack, sizeof(pack), MSG_WAITALL);
+        recv(*(int *)clifd, &pack, sizeof(pack), 0);
         printf("%s\n", pack);
     }
 }
@@ -57,7 +57,6 @@ int main()
     pthread_create(&tid, NULL, run, (void *)&cli_fd);
     while(1) {
         scanf("%s", pack);
-        printf("%s\n", pack);
         send(cli_fd, &pack, sizeof(pack),0);
     }
 }

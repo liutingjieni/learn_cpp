@@ -28,10 +28,8 @@ public:
     int accept_();
     void init(int);
     int get_fd() const { return sock_fd; }
-    std::shared_ptr<Conn> find(int);
 private:
     int sock_fd;
-    std::map<int, std::shared_ptr<Conn>> conn_list;  //保存所有的连接信息
 };
 
 Socket::Socket(int port)
@@ -82,9 +80,6 @@ int  Socket::accept_()
     conn_list.insert(std::make_pair(conn_t->fd, conn_t));
     return conn_t->fd;
 }
-std::shared_ptr<Conn> Socket::find(int fd)
-{
-    return conn_list[fd];
-}
+
 
 #endif
