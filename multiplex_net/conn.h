@@ -16,6 +16,7 @@ class conn {
 public:
     conn() : buffer_(new buffer) {  }
     int read();
+    string read_buffer();
     int get_fd()
     {
         return fd;
@@ -33,7 +34,15 @@ private:
 int conn::read()
 {
     buffer_->read_fd(fd, &save_errno);
+    cout << "save_errno" << save_errno << endl;
     return save_errno;
+}
+
+string conn::read_buffer()
+{
+
+    return buffer_->retrieve_all_as_string();
+
 }
 
 socklen_t conn::len = sizeof(struct sockaddr_in);

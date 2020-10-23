@@ -17,7 +17,6 @@
 #include "timer_wheel.h"
 #include "conn.h"
 using std::placeholders::_1;
-char pack[100];
 
 int setnonblocking(int fd)
 {
@@ -123,8 +122,8 @@ void Epoll::deal()
                 //根据到达连接的fd信息, 找到对应的conn
                 shared_ptr<conn> conn = conn_list[events[i].data.fd];
                 int ret = conn->read();  
-                if (ret <= 0) {  
-                    cout << "ret <= 0" << endl;
+                if (ret < 0) {  
+                    cout << "ret < 0" << endl;
                     close(events[i].data.fd);
                     conn_list.erase(events[i].data.fd);
                     events[i].data.fd = -1;

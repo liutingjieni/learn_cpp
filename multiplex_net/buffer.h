@@ -28,6 +28,7 @@ public:
     
 
     size_t read_fd(int fd, int *saved_errno);
+    string retrieve_all_as_string();
 
 protected: 
     size_t readable_bytes() const; 
@@ -45,7 +46,6 @@ protected:
     void append(const void *data, size_t len);
     void retrieve_all();
     void retrieve(size_t len);
-    string retrieve_all_as_string();
     string retrieve_as_string(size_t len);
 private:
     vector<char> buffer_;
@@ -200,6 +200,7 @@ size_t buffer::read_fd(int fd, int *saved_errno)
     cout << endl;
     if (n < 0) {
         *saved_errno = errno;
+        cout << "errno" << endl;
     } else if (static_cast<size_t>(n) <= writable) {
         write_index_ += n;
     } else {

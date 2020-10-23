@@ -7,13 +7,18 @@
 
 #include <iostream>
 #include "epoll.h"
+#include <string.h>
 using namespace std;
 using std::placeholders::_1;
 
 void onmessage(shared_ptr<conn> conn_)
-{
-    printf("&&&&&&&&&&&&&%s\n ", pack);
-    send(conn_->get_fd(), &pack, strlen(pack), 0);
+{ 
+    string s(conn_->read_buffer());
+    cout << "onmessage" << endl;
+    for(int i = 0; i < s.size(); i++) {
+        cout << s[i];
+    }
+    cout << endl;
 }
 
 //void ontime(shared_ptr<Conn> conn)
