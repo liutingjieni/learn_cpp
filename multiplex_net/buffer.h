@@ -51,6 +51,8 @@ private:
     vector<char> buffer_;
     size_t read_index_;
     size_t write_index_;
+
+    friend class http;
 };
 
 //通过指针的差值->readable空间的大小

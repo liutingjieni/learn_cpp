@@ -14,7 +14,8 @@ using std::placeholders::_1;
 void onmessage(shared_ptr<conn> conn_)
 { 
     string s(conn_->read_buffer());
-    cout << "onmessage" << endl;
+    const char *t = s.data();
+    cout << "onmessage" << t << endl;
     for(int i = 0; i < s.size(); i++) {
         cout << s[i];
     }
