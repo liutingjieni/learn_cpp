@@ -8,6 +8,7 @@
 #include <iostream>
 #include "epoll.h"
 #include <string.h>
+#include "http.h"
 using namespace std;
 using std::placeholders::_1;
 
@@ -15,6 +16,8 @@ void onmessage(shared_ptr<conn> conn_)
 { 
     string s(conn_->read_buffer());
     const char *t = s.data();
+    http *http_(new http(const_cast<char *>(t), s.size()));
+    http_->process();
     cout << "onmessage" << t << endl;
     for(int i = 0; i < s.size(); i++) {
         cout << s[i];

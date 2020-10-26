@@ -211,3 +211,4 @@ size_t buffer::read_fd(int fd, int *saved_errno)
     }
     return n;
 }
+
