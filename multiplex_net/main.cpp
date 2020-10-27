@@ -12,13 +12,19 @@
 using namespace std;
 using std::placeholders::_1;
 
+Socket sockfd(8888);
+Epoll epoll(sockfd);
+
 void onmessage(shared_ptr<conn> conn_)
 { 
     string s(conn_->read_buffer());
     const char *t = s.data();
-    http *http_(new http(const_cast<char *>(t), s.size()));
-    http_->process();
-    cout << "onmessage" << t << endl;
+   // http *http_(new http(conn_));
+   // if(http_->process()) {
+   //     epoll.fd_write(conn_->get_fd()); 
+   //     epoll.epoll_mod_(conn_->get_fd());
+   // }
+   // cout << "onmessage" << t << endl;
     for(int i = 0; i < s.size(); i++) {
         cout << s[i];
     }
@@ -32,8 +38,6 @@ void onmessage(shared_ptr<conn> conn_)
 
 int main()
 {
-    Socket sockfd(8888);
-    Epoll epoll(sockfd);
     epoll.set_mess_callback(bind(onmessage, _1));
     //epoll.set_time_callback(bind(ontime, _1));
     while(1) {

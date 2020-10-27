@@ -41,10 +41,12 @@ public:
     void active_fd();
     void deal();
 
+    void fd_write(int fd);
+    void fd_read(int fd);
+    void epoll_mod_(int);
 private:
     void epoll_add_(int);
     void epoll_del_(int);
-    void fd_read(int fd);
     
     int epoll_fd;
     struct epoll_event ev, events[EPOLL_MAX];
@@ -67,8 +69,8 @@ Epoll::Epoll(Socket fd) : sock_fd(fd)
     epoll_fd = epoll_create(EPOLL_MAX);
     fd_read(sock_fd.get_fd());
     epoll_add_(sock_fd.get_fd());
-    fd_read(timer.get_fd());
-    epoll_add_(timer.get_fd());
+    //fd_read(timer.get_fd());
+    //epoll_add_(timer.get_fd());
 }
 
 
@@ -76,8 +78,14 @@ void Epoll::fd_read(int fd)
 {
     ev.data.fd = fd;
     ev.events = EPOLLIN;
-
 }
+
+void Epoll::fd_write(int fd)
+{
+    ev.data.fd = fd;
+    ev.events = EPOLLOUT;
+}
+
 void Epoll::epoll_add_(int fd)
 {
     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev);
@@ -87,6 +95,11 @@ void Epoll::epoll_add_(int fd)
 void Epoll::epoll_del_(int fd)
 {
     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &ev);
+}
+
+void Epoll::epoll_mod_(int fd)
+{
+    epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &ev);
 }
 
 void Epoll::active_fd()
@@ -104,9 +117,9 @@ void Epoll::deal()
             epoll_add_(conn_fd);
 
             //在时间轮上为新的连接加tw_timer
-            tw_timer *tw = wheel.add_timer(conn_list[conn_fd], 60);
+            //tw_timer *tw = wheel.add_timer(conn_list[conn_fd], 60);
             //为每个到时的连接添加回调函数
-            tw->set_time_callback(bind(ontime, _1));
+            //tw->set_time_callback(bind(ontime, _1));
         }
         // 定时器
         else if(events[i].events & EPOLLIN) {
@@ -130,7 +143,7 @@ void Epoll::deal()
                     continue;
                 }
                 //根据conn的信息在map中找到对应tw_timer, 然后更新他在时间轮上的位置
-                wheel.update_timer(conn, 60);
+                //wheel.update_timer(conn, 60);
 
                 //在conn_list(所有连接map)找到所对应根据key(fd) 
                 task_.conn_ = conn;
@@ -139,6 +152,10 @@ void Epoll::deal()
         }
         else if (events[i].events & EPOLLOUT) {
             cout << "EPOLLOUT" << endl;
+            //shared_ptr<conn> conn = conn_list[events[i].data.fd];
+            //string s(conn->read_buffer());
+            //const char *data = s.data();
+            //write(events[i].data.fd, data, 1000);
         }
         else if (events[i].events & EPOLLRDHUP | EPOLLHUP | EPOLLERR) {
             cout << "EPOLLERR" << endl;

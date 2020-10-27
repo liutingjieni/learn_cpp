@@ -14,7 +14,7 @@
 //每个连接对应一个conn
 class conn {
 public:
-    conn() : buffer_(new buffer) {  }
+    conn() : input_(new buffer) {  }
     int read();
     string read_buffer();
     int get_fd()
@@ -25,15 +25,17 @@ private:
     int fd;
     struct sockaddr_in addr;
     static socklen_t len;
-    std::shared_ptr<buffer> buffer_;
+    std::shared_ptr<buffer> input_;
+    std::shared_ptr<buffer> output_;
     int save_errno;
     friend class Socket;
     friend class Epoll;
+    friend class http;
 };
 
 int conn::read()
 {
-    buffer_->read_fd(fd, &save_errno);
+    input_->read_fd(fd, &save_errno);
     cout << "save_errno" << save_errno << endl;
     return save_errno;
 }
@@ -41,7 +43,7 @@ int conn::read()
 string conn::read_buffer()
 {
 
-    return buffer_->retrieve_all_as_string();
+    return input_->retrieve_all_as_string();
 
 }
 

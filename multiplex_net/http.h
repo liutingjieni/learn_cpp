@@ -3,7 +3,7 @@
 	> Author:jieni 
 	> Mail: 
 	> Created Time: 2020年10月26日 星期一 20时53分01秒
- ************************************************************************/
+ ***********************************************************************/
 
 #ifndef _HTTP_H
 #define _HTTP_H
@@ -28,11 +28,10 @@ using namespace std;
 #include <stdarg.h>
 #include <memory>
 #include <errno.h>
-//#include "buffer.h"
-
+#include "conn.h"
 class http {
 public:
-    http(char *, size_t);
+    http(shared_ptr<conn>);
 
     //文件名的最大长度
     static const int FILENAME_LEN = 200;
@@ -57,7 +56,7 @@ public:
     enum LINE_STATUS { LINE_OK = 0, LINE_BAD, LINE_OPEN };
 
     ~http();
-    void process();
+    bool process();
 
 private:
     //解析http请求
@@ -98,13 +97,13 @@ private:
     struct stat m_file_stat;          //目标文件的状态
     
     char doc_root[10] = "/";
-    buffer output;
     char *input;
     //check用于控制字符的移动,但要检查改行字符是否LINE_OK
     char *m_checked_index_;
     //start_line用于记录行的起始位置,如果满足LINE_OK, 移动它 
     char *m_start_line_;
     size_t read_size;
+    shared_ptr<conn> conn_;
 };
 
 
@@ -118,12 +117,20 @@ const char *error_404_form = "The request file was not found on this server.\n";
 const char *error_500_title = "Bad Request";
 const char *error_500_form = "There wan an unusual problem serving this requested file.\n";
 
-http::http(char *input, size_t size)
-  : input(input),
-    m_checked_index_(input),
-    m_start_line_(input),
-    read_size(size)
+
+char*string_char(string s)
 {
+    const char*t = s.data();
+    return const_cast<char *>(t);
+}
+
+http::http(shared_ptr<conn> conn_t) : conn_(conn_t)
+{
+    string s(conn_->read_buffer());
+    char *input = string_char(s);
+    m_checked_index_= input;
+    m_start_line_ = input;
+    read_size = s.size();
     m_check_state = CHECK_STATE_REQUESTLINE;
     m_checked_index_ = input;
     m_start_line_ = input;
@@ -136,11 +143,13 @@ http::http(char *input, size_t size)
     m_host = 0;
 }
 
-void http::process()
+bool http::process()
 {
     HTTP_CODE read_ret = process_read();
     cout << m_method << m_url << m_version << m_host << m_content_length << m_linger << endl;
+    cout << "HTTP_CODE " << read_ret << endl;
     process_write(read_ret);
+    return true;
 }
 
 http::HTTP_CODE http::process_read()
@@ -152,7 +161,6 @@ http::HTTP_CODE http::process_read()
         ((line_status = parse_line())== LINE_OK)) {
         text = m_start_line_;
         m_start_line_ = m_checked_index_;
-            cout << m_check_state << endl;
         switch (m_check_state) {
             case CHECK_STATE_REQUESTLINE: {
                 ret = parse_request_line(text);
@@ -311,8 +319,14 @@ http::HTTP_CODE http::do_request()
 
 bool http::add_response(const char *format, ...)
 {
+    char t_buffer[512];
     va_list arg_list;
     va_start(arg_list, format);
+    int len = vsnprintf(t_buffer, 1024, format, arg_list);
+    va_end(arg_list);
+    conn_->output_->append(t_buffer, strlen(t_buffer));
+    cout << "7777777777" << t_buffer << endl;
+    return true;
 
 }
 
