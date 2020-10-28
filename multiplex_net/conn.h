@@ -14,9 +14,10 @@
 //每个连接对应一个conn
 class conn {
 public:
-    conn() : input_(new buffer) {  }
+    conn() : input_(new buffer), output_(new buffer) {  }
     int read();
     string read_buffer();
+    string write_buffer();
     int get_fd()
     {
         return fd;
@@ -35,16 +36,17 @@ private:
 
 int conn::read()
 {
-    input_->read_fd(fd, &save_errno);
-    cout << "save_errno" << save_errno << endl;
-    return save_errno;
+    return input_->read_fd(fd, &save_errno);
 }
 
 string conn::read_buffer()
 {
-
     return input_->retrieve_all_as_string();
+}
 
+string conn::write_buffer()
+{
+    return output_->retrieve_all_as_string();
 }
 
 socklen_t conn::len = sizeof(struct sockaddr_in);

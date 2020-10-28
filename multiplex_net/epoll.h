@@ -69,8 +69,8 @@ Epoll::Epoll(Socket fd) : sock_fd(fd)
     epoll_fd = epoll_create(EPOLL_MAX);
     fd_read(sock_fd.get_fd());
     epoll_add_(sock_fd.get_fd());
-    //fd_read(timer.get_fd());
-    //epoll_add_(timer.get_fd());
+    fd_read(timer.get_fd());
+    epoll_add_(timer.get_fd());
 }
 
 
@@ -117,9 +117,9 @@ void Epoll::deal()
             epoll_add_(conn_fd);
 
             //在时间轮上为新的连接加tw_timer
-            //tw_timer *tw = wheel.add_timer(conn_list[conn_fd], 60);
+            tw_timer *tw = wheel.add_timer(conn_list[conn_fd], 60);
             //为每个到时的连接添加回调函数
-            //tw->set_time_callback(bind(ontime, _1));
+            tw->set_time_callback(bind(ontime, _1));
         }
         // 定时器
         else if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
@@ -129,8 +129,8 @@ void Epoll::deal()
             conn_list.erase(events[i].data.fd);
         }
         else if(events[i].events & EPOLLIN) {
-            cout << "EPOLLIN" << endl;
             //定时器事件
+            cout << "EPOLLIN" << endl;
             if (events[i].data.fd == timer.get_fd()) {
                 read(timer.get_fd(), buf, sizeof(buf));
                 wheel.tick(); //心跳事件到达
@@ -141,16 +141,20 @@ void Epoll::deal()
             else {
                 //根据到达连接的fd信息, 找到对应的conn
                 shared_ptr<conn> conn = conn_list[events[i].data.fd];
-                int ret = conn->read();  
-               // if (ret < 0) {  
-               //     cout << "ret < 0" << endl;
-               //     close(events[i].data.fd);
-               //     conn_list.erase(events[i].data.fd);
-               //     events[i].data.fd = -1;
-               //     continue;
-               // }
+                int ret = conn->read();
+                if (ret == 0) {
+                    cout << "ret = 0" << endl;
+                    continue;
+                }
+                if (ret < 0) {  
+                    cout << "ret < 0" << endl;
+                    close(events[i].data.fd);
+                    conn_list.erase(events[i].data.fd);
+                    events[i].data.fd = -1;
+                    continue;
+                }
                 //根据conn的信息在map中找到对应tw_timer, 然后更新他在时间轮上的位置
-                //wheel.update_timer(conn, 60);
+                wheel.update_timer(conn, 60);
 
                 //在conn_list(所有连接map)找到所对应根据key(fd) 
                 task_.conn_ = conn;
@@ -159,10 +163,14 @@ void Epoll::deal()
         }
         else if (events[i].events & EPOLLOUT) {
             cout << "EPOLLOUT" << endl;
-            //shared_ptr<conn> conn = conn_list[events[i].data.fd];
-            //string s(conn->read_buffer());
-            //const char *data = s.data();
-            //write(events[i].data.fd, data, 1000);
+            shared_ptr<conn> conn = conn_list[events[i].data.fd];
+            string s(conn->write_buffer());
+            const char *data = s.data();
+            cout << "#############" << data  << " "<< strlen(data)<< endl;
+            int n = write(events[i].data.fd, data, strlen(data) + 1);
+            cout << "#############" <<  n << " "<< strlen(data)<< endl;
+            fd_read(events[i].data.fd);
+            epoll_mod_(events[i].data.fd);
         }
     }
 }

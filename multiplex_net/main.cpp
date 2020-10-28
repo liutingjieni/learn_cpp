@@ -17,18 +17,12 @@ Epoll epoll(sockfd);
 
 void onmessage(shared_ptr<conn> conn_)
 { 
-    string s(conn_->read_buffer());
-    const char *t = s.data();
-   // http *http_(new http(conn_));
-   // if(http_->process()) {
-   //     epoll.fd_write(conn_->get_fd()); 
-   //     epoll.epoll_mod_(conn_->get_fd());
-   // }
-   // cout << "onmessage" << t << endl;
-    for(int i = 0; i < s.size(); i++) {
-        cout << s[i];
+    http *http_(new http(conn_));
+    if(http_->process()) {
+        cout << "process" << endl;
+        epoll.fd_write(conn_->get_fd()); 
+        epoll.epoll_mod_(conn_->get_fd());
     }
-    cout << endl;
 }
 
 //void ontime(shared_ptr<Conn> conn)

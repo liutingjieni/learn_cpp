@@ -93,9 +93,9 @@ private:
     int m_content_length;             //http请求的消息体长度
     bool m_linger;                    //http请求是否要求保持连接
 
-    char *m_file_address;             //客户请求的目标文件被mmap到内存的起始位置
     struct stat m_file_stat;          //目标文件的状态
-    
+    int file;
+
     char doc_root[10] = "/";
     char *input;
     //check用于控制字符的移动,但要检查改行字符是否LINE_OK
@@ -127,10 +127,11 @@ char*string_char(string s)
 http::http(shared_ptr<conn> conn_t) : conn_(conn_t)
 {
     string s(conn_->read_buffer());
-    char *input = string_char(s);
+    input = string_char(s);
     m_checked_index_= input;
     m_start_line_ = input;
     read_size = s.size();
+    cout<<"read_size" << read_size << endl;
     m_check_state = CHECK_STATE_REQUESTLINE;
     m_checked_index_ = input;
     m_start_line_ = input;
@@ -146,7 +147,7 @@ http::http(shared_ptr<conn> conn_t) : conn_(conn_t)
 bool http::process()
 {
     HTTP_CODE read_ret = process_read();
-    cout << m_method << m_url << m_version << m_host << m_content_length << m_linger << endl;
+    cout << "hhhhhhhhhhhhhhhhhhh"<< m_method << m_url << m_version << m_host << m_content_length << m_linger << endl;
     cout << "HTTP_CODE " << read_ret << endl;
     process_write(read_ret);
     return true;
@@ -197,6 +198,7 @@ http::HTTP_CODE http::process_read()
 http::LINE_STATUS http::parse_line()
 {
     char temp;
+    cout << read_size << endl;
     for (; m_checked_index_ < input + read_size; m_checked_index_++) {
         temp = *m_checked_index_;
         if (temp == '\r') {
@@ -298,34 +300,35 @@ http::HTTP_CODE http::parse_content(char *text)
 
 http::HTTP_CODE http::do_request()
 {
+    cout << "do_request " << endl;
     strcpy(m_real_file, doc_root);
     int len = strlen(doc_root);
     strncpy(m_real_file + len, m_url, FILENAME_LEN - len -1);
     if (stat(m_real_file, &m_file_stat) < 0) {
+        cout << "NO_RESQURCE" << endl;
         return NO_RESQURCE;
     }
     if (!m_file_stat.st_mode & S_IROTH) {
+        cout << "FORBIDDEN_REQUEST" << endl;
         return FORBIDDEN_REQUEST;
     }
     if (S_ISDIR(m_file_stat.st_mode)) {
+        cout << "BAD_REQUEST" << endl;
         return BAD_REQUEST;
     }
 
-    int fd = open(m_real_file, O_RDONLY);
-    m_file_address = (char *)mmap(0, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    close(fd);
+    file = open(m_real_file, O_RDONLY);
     return FILE_REQUEST;
 }
 
 bool http::add_response(const char *format, ...)
 {
-    char t_buffer[512];
+    char *t_buffer = (char *)malloc(512);
     va_list arg_list;
     va_start(arg_list, format);
-    int len = vsnprintf(t_buffer, 1024, format, arg_list);
+    int len = vsnprintf(t_buffer, 512, format, arg_list);
     va_end(arg_list);
     conn_->output_->append(t_buffer, strlen(t_buffer));
-    cout << "7777777777" << t_buffer << endl;
     return true;
 
 }
@@ -399,6 +402,9 @@ bool http::process_write(HTTP_CODE ret)
         }
         case FILE_REQUEST: {
             add_status_line(200, ok_200_title);
+            add_headers(m_file_stat.st_size);
+            int save_errno;
+            conn_->output_->read_fd(file, &save_errno);
             return true;
         }
     }
