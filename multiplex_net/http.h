@@ -109,13 +109,13 @@ private:
 
 const char *ok_200_title = "OK";
 const char *error_400_title = "Bad Request";
-const char *error_400_form = "Your request has bad syntax ot is inherently impossible to satisfy.\n";
+const char *error_400_form = "<html><body>Your request has bad syntax ot is inherently impossible to satisfy.\n</body></html>";
 const char *error_403_title = "Bad Forbidden";
-const char *error_403_form = "Your do not have permission to get file from this server.\n";
+const char *error_403_form = "<html><body>Your do not have permission to get file from this server.\n</body></html>";
 const char *error_404_title = "Not found";
-const char *error_404_form = "The request file was not found on this server.\n";
+const char *error_404_form = "<html><body>The request file was not found on this server.\n</body></html>";
 const char *error_500_title = "Bad Request";
-const char *error_500_form = "There wan an unusual problem serving this requested file.\n";
+const char *error_500_form = "<html><body>There wan an unusual problem serving this requested file.\n</body></html>";
 
 
 char*string_char(string s)
@@ -147,8 +147,6 @@ http::http(shared_ptr<conn> conn_t) : conn_(conn_t)
 bool http::process()
 {
     HTTP_CODE read_ret = process_read();
-    cout << "hhhhhhhhhhhhhhhhhhh"<< m_method << m_url << m_version << m_host << m_content_length << m_linger << endl;
-    cout << "HTTP_CODE " << read_ret << endl;
     process_write(read_ret);
     return true;
 }
@@ -402,10 +400,22 @@ bool http::process_write(HTTP_CODE ret)
         }
         case FILE_REQUEST: {
             add_status_line(200, ok_200_title);
-            add_headers(m_file_stat.st_size);
-            int save_errno;
-            conn_->output_->read_fd(file, &save_errno);
+            if (m_file_stat.st_size != 0) {
+                add_headers(m_file_stat.st_size);
+                int save_errno;
+                conn_->output_->read_fd(file, &save_errno);
+            }
+            else {
+                const char *ok_string = "<html><body></body></html>";
+                add_headers(strlen(ok_string));
+                if (!add_content(ok_string)) {
+                    return false;
+                }
+            }
             return true;
+        }
+        default: {
+            return false;
         }
     }
     

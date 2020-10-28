@@ -19,7 +19,6 @@ void onmessage(shared_ptr<conn> conn_)
 { 
     http *http_(new http(conn_));
     if(http_->process()) {
-        cout << "process" << endl;
         epoll.fd_write(conn_->get_fd()); 
         epoll.epoll_mod_(conn_->get_fd());
     }
