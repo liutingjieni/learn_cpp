@@ -24,6 +24,7 @@ public:
     }
 private:
     int fd;
+    bool linger;
     struct sockaddr_in addr;
     static socklen_t len;
     std::shared_ptr<buffer> input_;

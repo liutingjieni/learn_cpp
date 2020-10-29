@@ -44,9 +44,10 @@ public:
     void fd_write(int fd);
     void fd_read(int fd);
     void epoll_mod_(int);
+    void epoll_del_(int);
+    void del(shared_ptr<conn>);
 private:
     void epoll_add_(int);
-    void epoll_del_(int);
     
     int epoll_fd;
     struct epoll_event ev, events[EPOLL_MAX];
@@ -74,6 +75,10 @@ Epoll::Epoll(Socket fd) : sock_fd(fd)
 }
 
 
+void Epoll::del(shared_ptr<conn> conn_)
+{
+    conn_list.erase(conn_->get_fd());
+}
 void Epoll::fd_read(int fd)
 {
     ev.data.fd = fd;
@@ -112,6 +117,7 @@ void Epoll::deal()
     char buf[10];
     for (int i = 0; i < fd_num; i++) {
         if(events[i].data.fd == sock_fd.get_fd()) {
+            cout << events[i].data.fd << "accept" << endl;
             int conn_fd = sock_fd.accept_();
             fd_read(conn_fd);
             epoll_add_(conn_fd);
@@ -130,8 +136,8 @@ void Epoll::deal()
         }
         else if(events[i].events & EPOLLIN) {
             //定时器事件
-            cout << "EPOLLIN" << endl;
             if (events[i].data.fd == timer.get_fd()) {
+                cout << "epoll_timerfd" << endl;
                 read(timer.get_fd(), buf, sizeof(buf));
                 wheel.tick(); //心跳事件到达
                 
@@ -144,6 +150,9 @@ void Epoll::deal()
                 int ret = conn->read();
                 if (ret == 0) {
                     cout << "ret = 0" << endl;
+                    epoll_del_(events[i].data.fd);
+                    close(events[i].data.fd);
+                    conn_list.erase(events[i].data.fd);
                     continue;
                 }
                 if (ret < 0) {  
@@ -162,15 +171,19 @@ void Epoll::deal()
             }
         }
         else if (events[i].events & EPOLLOUT) {
-            cout << "EPOLLOUT" << endl;
+            cout << "EPOLLOUT" << events[i].data.fd<<endl;
             shared_ptr<conn> conn = conn_list[events[i].data.fd];
             string s(conn->write_buffer());
             const char *data = s.data();
             cout << "#############" << data  << " "<< strlen(data)<< endl;
-            int n = write(events[i].data.fd, data, strlen(data) + 1);
-            cout << "#############" <<  n << " "<< strlen(data)<< endl;
-            fd_read(events[i].data.fd);
-            epoll_mod_(events[i].data.fd);
+            int n = write(events[i].data.fd, data, strlen(data));
+            if(!conn->linger) {
+                epoll_del_(conn->get_fd());
+                del(conn);
+            }else {
+                fd_read(events[i].data.fd);
+                epoll_mod_(events[i].data.fd);
+            }
         }
     }
 }

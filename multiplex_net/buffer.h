@@ -195,10 +195,6 @@ size_t buffer::read_fd(int fd, int *saved_errno)
 
     const int iovcnt = (writable < sizeof extrabuf) ? 2 : 1;
     const size_t n = readv(fd, vec, iovcnt);
-    for (int i = 0; i < n; i++) {
-        cout << *(begin() + write_index_ + i) ;
-    }
-    cout << endl;
     if (n < 0) {
         *saved_errno = errno;
         cout << "errno" << endl;

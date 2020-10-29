@@ -91,7 +91,6 @@ private:
     char *m_version;                  //http协议的版本号, 我们只支持HTTP/1.1
     char *m_host;                     //主机名
     int m_content_length;             //http请求的消息体长度
-    bool m_linger;                    //http请求是否要求保持连接
 
     struct stat m_file_stat;          //目标文件的状态
     int file;
@@ -131,11 +130,10 @@ http::http(shared_ptr<conn> conn_t) : conn_(conn_t)
     m_checked_index_= input;
     m_start_line_ = input;
     read_size = s.size();
-    cout<<"read_size" << read_size << endl;
     m_check_state = CHECK_STATE_REQUESTLINE;
     m_checked_index_ = input;
     m_start_line_ = input;
-    m_linger = false;
+    conn_->linger = false;
 
     m_method = GET;
     m_url = 0;
@@ -147,6 +145,7 @@ http::http(shared_ptr<conn> conn_t) : conn_(conn_t)
 bool http::process()
 {
     HTTP_CODE read_ret = process_read();
+    cout << "process HTTP_CODE" <<read_ret << endl;
     process_write(read_ret);
     return true;
 }
@@ -196,7 +195,6 @@ http::HTTP_CODE http::process_read()
 http::LINE_STATUS http::parse_line()
 {
     char temp;
-    cout << read_size << endl;
     for (; m_checked_index_ < input + read_size; m_checked_index_++) {
         temp = *m_checked_index_;
         if (temp == '\r') {
@@ -272,7 +270,7 @@ http::HTTP_CODE http::parse_headers(char *text)
         text += 11;
         text += strspn(text, "\t");
         if (strcasecmp(text, "keep-alive") == 0) {
-            m_linger = true;
+            conn_->linger = true;
         }
     }
     else if (strncasecmp(text, "Content-Length:", 15) == 0) {
@@ -285,9 +283,6 @@ http::HTTP_CODE http::parse_headers(char *text)
         text += strspn(text, "\t");
         m_host = text;
     }
-    else {
-        cout << "oop! unkonw header " <<text << endl;
-    }
     return NO_RESQURCE;
 }
 
@@ -298,20 +293,16 @@ http::HTTP_CODE http::parse_content(char *text)
 
 http::HTTP_CODE http::do_request()
 {
-    cout << "do_request " << endl;
     strcpy(m_real_file, doc_root);
     int len = strlen(doc_root);
     strncpy(m_real_file + len, m_url, FILENAME_LEN - len -1);
     if (stat(m_real_file, &m_file_stat) < 0) {
-        cout << "NO_RESQURCE" << endl;
         return NO_RESQURCE;
     }
     if (!m_file_stat.st_mode & S_IROTH) {
-        cout << "FORBIDDEN_REQUEST" << endl;
         return FORBIDDEN_REQUEST;
     }
     if (S_ISDIR(m_file_stat.st_mode)) {
-        cout << "BAD_REQUEST" << endl;
         return BAD_REQUEST;
     }
 
@@ -350,7 +341,7 @@ bool http::add_content_length(int content_len)
 
 bool http::add_linger()
 {
-    return add_response("Connection: %s\r\n", (m_linger == true) ? "keep-alive": "close");
+    return add_response("Connection: %s\r\n", (conn_->linger == true) ? "keep-alive": "close");
 }
 
 bool http::add_blank_line()

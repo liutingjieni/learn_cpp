@@ -94,8 +94,6 @@ tw_timer* time_wheel::add_timer(shared_ptr<conn> conn, int timeout)
     tw_timer* timer = new tw_timer(rotation, ts, conn);
     
     if (!slots[ts]) { //如果该槽中无任何定时器
-        cout << "add timer, rotation is" << rotation << 
-        ", ts is " << ts << ", cur_slot is" << cur_slot << endl;
         slots[ts] = timer;
     }
     else { //头插法将新的定时器插到槽中
@@ -155,8 +153,6 @@ tw_timer* time_wheel::reset_timer(tw_timer *timer, int timeout)
     // 创建新的定时器, 它在时间轮转动rotation后被触发, 且位于ts槽中
     
     if (!slots[timer->time_slot]) { //如果该槽中无任何定时器
-        cout << "add timer, rotation is" << timer->rotation << 
-        ", ts is " << timer->time_slot << ", cur_slot is" << cur_slot << endl;
         slots[timer->time_slot] = timer;
         timer->prev = timer->next = NULL;
     }
@@ -180,10 +176,8 @@ void time_wheel::tick()
 {
     //取得时间轮上当前槽的头结点
     tw_timer* tmp = slots[cur_slot];
-    cout << "current slot is " << cur_slot << endl;
 
     while (tmp) { //开始遍历本条链表
-        cout << "tick the timer once" << endl;
         // 如果定时器的rotation > 0, 则它在这一轮连接中不起作用
         if (tmp->rotation > 0) {
             tmp->rotation--;
@@ -194,7 +188,6 @@ void time_wheel::tick()
             tmp->time_callback_(tmp->conn_);
             //到期的是头结点
             if (tmp == slots[cur_slot]) { 
-                cout << "delete header in cur_slot" << endl;
                 slots[cur_slot] = tmp->next;
                 delete tmp;
                 if (slots[cur_slot]) {
