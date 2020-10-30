@@ -55,7 +55,7 @@ public:
     //行的读取状态
     enum LINE_STATUS { LINE_OK = 0, LINE_BAD, LINE_OPEN };
 
-    ~http();
+    ~http() {  }
     bool process();
 
 private:
@@ -145,7 +145,6 @@ http::http(shared_ptr<conn> conn_t) : conn_(conn_t)
 bool http::process()
 {
     HTTP_CODE read_ret = process_read();
-    cout << "process HTTP_CODE" <<read_ret << endl;
     process_write(read_ret);
     return true;
 }

@@ -117,7 +117,7 @@ void Epoll::deal()
     char buf[10];
     for (int i = 0; i < fd_num; i++) {
         if(events[i].data.fd == sock_fd.get_fd()) {
-            cout << events[i].data.fd << "accept" << endl;
+            //cout << events[i].data.fd << "accept" << endl;
             int conn_fd = sock_fd.accept_();
             fd_read(conn_fd);
             epoll_add_(conn_fd);
@@ -137,7 +137,7 @@ void Epoll::deal()
         else if(events[i].events & EPOLLIN) {
             //定时器事件
             if (events[i].data.fd == timer.get_fd()) {
-                cout << "epoll_timerfd" << endl;
+                //cout << "epoll_timerfd" << endl;
                 read(timer.get_fd(), buf, sizeof(buf));
                 wheel.tick(); //心跳事件到达
                 
@@ -149,17 +149,19 @@ void Epoll::deal()
                 shared_ptr<conn> conn = conn_list[events[i].data.fd];
                 int ret = conn->read();
                 if (ret == 0) {
-                    cout << "ret = 0" << endl;
+                    //cout << "ret = 0" << endl;
                     epoll_del_(events[i].data.fd);
                     close(events[i].data.fd);
                     conn_list.erase(events[i].data.fd);
+                    wheel.del_timer(conn);
                     continue;
                 }
                 if (ret < 0) {  
-                    cout << "ret < 0" << endl;
+                    //cout << "ret < 0" << endl;
                     close(events[i].data.fd);
                     conn_list.erase(events[i].data.fd);
                     events[i].data.fd = -1;
+                    wheel.del_timer(conn);
                     continue;
                 }
                 //根据conn的信息在map中找到对应tw_timer, 然后更新他在时间轮上的位置
@@ -173,16 +175,23 @@ void Epoll::deal()
         else if (events[i].events & EPOLLOUT) {
             cout << "EPOLLOUT" << events[i].data.fd<<endl;
             shared_ptr<conn> conn = conn_list[events[i].data.fd];
+            cout << "conn_list" << conn->get_fd() << endl;
             string s(conn->write_buffer());
+            cout << "conn->write_buffer" << endl;
             const char *data = s.data();
             cout << "#############" << data  << " "<< strlen(data)<< endl;
             int n = write(events[i].data.fd, data, strlen(data));
             if(!conn->linger) {
-                epoll_del_(conn->get_fd());
-                del(conn);
+                cout << "del^^^^^^^^^^^^^^^^^^^^^^" << endl;
+                epoll_del_(events[i].data.fd);
+                close(events[i].data.fd);
+                conn_list.erase(events[i].data.fd);
+                wheel.del_timer(conn);
             }else {
+                cout << "mod^^^^^^^^^^^^^^^^^^^^^^" << endl;
                 fd_read(events[i].data.fd);
                 epoll_mod_(events[i].data.fd);
+                
             }
         }
     }

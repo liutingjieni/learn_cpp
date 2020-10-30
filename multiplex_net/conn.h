@@ -42,12 +42,16 @@ int conn::read()
 
 string conn::read_buffer()
 {
-    return input_->retrieve_all_as_string();
+    string s(input_->retrieve_all_as_string());
+    cout << "read******"<< s.data() << endl;
+    return s;
 }
 
 string conn::write_buffer()
 {
-    return output_->retrieve_all_as_string();
+    string s(output_->retrieve_all_as_string());
+    cout << "write ******"<<s.data() << endl;
+    return s;
 }
 
 socklen_t conn::len = sizeof(struct sockaddr_in);

@@ -59,6 +59,7 @@ public:
     tw_timer* add_timer(shared_ptr<conn>, int timeout); 
     tw_timer* reset_timer(tw_timer* , int ); 
     tw_timer* cur_del_timer(tw_timer* timer);
+    void del_timer(shared_ptr<conn> );
     void tick();
     void update_timer(shared_ptr<conn>, int timeout);
 
@@ -128,6 +129,10 @@ tw_timer* time_wheel::cur_del_timer(tw_timer* timer)
         }
     }
     return timer;
+}
+void time_wheel::del_timer(shared_ptr<conn> conn_)
+{
+    delete cur_del_timer(get_timer[conn_]);
 }
 
 tw_timer* time_wheel::reset_timer(tw_timer *timer, int timeout)

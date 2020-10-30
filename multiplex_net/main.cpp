@@ -22,6 +22,7 @@ void onmessage(shared_ptr<conn> conn_)
         epoll.fd_write(conn_->get_fd()); 
         epoll.epoll_mod_(conn_->get_fd());
     }
+    delete http_;
 }
 
 //void ontime(shared_ptr<Conn> conn)
