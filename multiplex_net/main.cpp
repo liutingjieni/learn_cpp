@@ -6,21 +6,20 @@
  ************************************************************************/
 
 #include <iostream>
-#include "epoll.h"
+#include "event.h"
 #include <string.h>
 #include "http.h"
 using namespace std;
 using std::placeholders::_1;
 
-Socket sockfd(8888);
-Epoll epoll(sockfd);
+event* event_(new event(8888));
 
 void onmessage(shared_ptr<conn> conn_)
 { 
     http *http_(new http(conn_));
     if(http_->process()) {
-        epoll.fd_write(conn_->get_fd()); 
-        epoll.epoll_mod_(conn_->get_fd());
+        event_->fd_write(conn_->get_fd()); 
+        event_->epoll_mod_(conn_->get_fd());
     }
     delete http_;
 }
@@ -32,10 +31,7 @@ void onmessage(shared_ptr<conn> conn_)
 
 int main()
 {
-    epoll.set_mess_callback(bind(onmessage, _1));
-    //epoll.set_time_callback(bind(ontime, _1));
-    while(1) {
-        epoll.active_fd();
-        epoll.deal();
-    }
+    event_->set_mess_callback(bind(onmessage, _1));
+    event_->loop();
+    delete event_;
 }

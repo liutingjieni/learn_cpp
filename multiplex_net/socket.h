@@ -6,7 +6,7 @@
  ************************************************************************/
 
 #ifndef _SOCKET_H
-#define _SOCKET_
+#define _SOCKET_H
 
 #define IP "0.0.0.0"
 #include <netinet/in.h>

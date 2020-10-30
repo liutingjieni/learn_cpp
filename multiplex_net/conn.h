@@ -22,6 +22,10 @@ public:
     {
         return fd;
     }
+    bool get_linger()
+    {
+        return linger;
+    }
 private:
     int fd;
     bool linger;
@@ -31,7 +35,6 @@ private:
     std::shared_ptr<buffer> output_;
     int save_errno;
     friend class Socket;
-    friend class Epoll;
     friend class http;
 };
 
